@@ -3,151 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional To-Do List</title>
+    <title>My Cozy To-Do List</title>
+    <!-- 1. ADDED PROFESSIONAL GOOGLE FONT -->
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    
     <style>
-        /* 1. UPDATED COLORS & GRADIENTS */
         :root {
-            --primary: #6366f1;
-            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            --card: rgba(30, 41, 59, 0.7); /* Translucent for glass effect */
-            --text: #f8fafc;
-            --input-bg: rgba(15, 23, 42, 0.6);
+            --primary: #fbbf24; /* Warm Amber */
+            --bg: #fffbeb; /* Soft Cream */
+            --text: #78350f; /* Deep Brown (Better than black) */
+            --card-bg: rgba(255, 255, 255, 0.8);
         }
 
         body {
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            background: var(--bg-gradient); /* 2. CHANGED to gradient background */
+            font-family: 'Quicksand', sans-serif; /* 2. NEW CUTE PROFESSIONAL FONT */
+            background-color: var(--bg);
             color: var(--text);
             display: flex;
             justify-content: center;
-            align-items: center; /* 3. CENTERED vertically on screen */
+            align-items: center;
             min-height: 100vh;
             margin: 0;
+            overflow: hidden; /* Keeps background shapes inside */
+            position: relative;
+        }
+
+        /* 3. ADDED CUTE BACKGROUND SHAPES */
+        .bg-shape {
+            position: absolute;
+            z-index: -1;
+            filter: blur(40px);
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: float 10s infinite alternate ease-in-out;
+        }
+        .shape-1 { width: 300px; height: 300px; background: #fef3c7; top: -50px; left: -50px; }
+        .shape-2 { width: 250px; height: 250px; background: #fde68a; bottom: -20px; right: -20px; animation-delay: 2s; }
+
+        @keyframes float {
+            from { transform: translate(0, 0); }
+            to { transform: translate(20px, 30px); }
         }
 
         .container {
-            background: var(--card);
-            backdrop-filter: blur(10px); /* 4. ADDED glass blur effect */
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
             padding: 2.5rem;
-            border-radius: 24px; /* 5. ROUNDED corners more for modern look */
-            border: 1px solid rgba(255, 255, 255, 0.1); /* 6. ADDED subtle border */
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 30px;
+            border: 2px solid white;
+            box-shadow: 0 20px 40px rgba(251, 191, 36, 0.1);
             width: 90%;
-            max-width: 400px;
+            max-width: 380px;
+            text-align: center;
         }
 
-        h1 { 
-            font-size: 1.8rem; 
-            font-weight: 800; 
-            margin-bottom: 2rem; 
-            text-align: center; 
-            letter-spacing: -0.025em;
-        }
+        h1 { font-weight: 700; font-size: 1.8rem; margin-bottom: 1.5rem; color: #92400e; }
 
-        .input-group { 
-            display: flex; 
-            gap: 12px; 
-            margin-bottom: 2rem; 
-        }
+        .input-group { display: flex; gap: 10px; margin-bottom: 1.5rem; }
 
         input {
             flex-grow: 1;
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: 1px solid #334155;
-            background: var(--input-bg);
-            color: white;
+            padding: 12px 18px;
+            border-radius: 15px;
+            border: 2px solid #fde68a;
+            background: white;
+            font-family: inherit;
             outline: none;
-            transition: border-color 0.2s;
         }
 
-        /* 7. ADDED Focus state for input */
-        input:focus {
-            border-color: var(--primary);
-        }
+        input:focus { border-color: var(--primary); }
 
         button {
             background: var(--primary);
-            color: white;
+            color: #92400e;
             border: none;
             padding: 12px 20px;
-            border-radius: 12px;
+            border-radius: 15px;
+            font-weight: 700;
             cursor: pointer;
-            font-weight: 600;
             transition: all 0.2s;
+            box-shadow: 0 4px 0px #d97706; /* 4. CUTE 3D BUTTON EFFECT */
         }
 
-        /* 8. ADDED hover lift effect */
-        button:hover { 
-            opacity: 0.9; 
-            transform: translateY(-1px);
-        }
+        button:active { transform: translateY(3px); box-shadow: 0 1px 0px #d97706; }
 
         ul { list-style: none; padding: 0; }
 
         li {
-            background: rgba(51, 65, 85, 0.5);
-            margin-bottom: 12px;
-            padding: 14px 18px;
-            border-radius: 12px;
+            background: white;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            animation: popIn 0.3s ease-out;
         }
 
-        .delete-btn { 
-            background: rgba(239, 68, 68, 0.2); 
-            color: #ef4444;
-            padding: 6px 12px; 
-            font-size: 12px; 
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
+        .delete-btn { background: #fee2e2; color: #ef4444; border-radius: 10px; box-shadow: none; padding: 5px 10px; }
 
-        .delete-btn:hover {
-            background: #ef4444;
-            color: white;
-        }
-
-        @keyframes fadeIn { 
-            from { opacity: 0; transform: scale(0.95); } 
-            to { opacity: 1; transform: scale(1); }
-        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Task Manager</h1>
-    <div class="input-group">
-        <input type="text" id="todo-input" placeholder="Add a new task...">
-        <button onclick="addTask()">Add Task</button>
+    <!-- Cute Background Blobs -->
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+
+    <div class="container">
+        <h1>✨ Today's Tasks</h1>
+        <div class="input-group">
+            <input type="text" id="todo-input" placeholder="What's your plan?">
+            <button onclick="addTask()">Add</button>
+        </div>
+        <ul id="todo-list"></ul>
     </div>
-    <ul id="todo-list"></ul>
-</div>
 
-<script>
-    function addTask() {
-        const input = document.getElementById('todo-input');
-        const list = document.getElementById('todo-list');
-        
-        if (input.value.trim() === '') return;
-
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <span>${input.value}</span>
-            <button class="delete-btn" onclick="this.parentElement.remove()">Delete</button>
-        `;
-        
-        list.appendChild(li);
-        input.value = '';
-    }
-
-    document.getElementById('todo-input').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') addTask();
-    });
-</script>
-
+    <script>
+        function addTask() {
+            const input = document.getElementById('todo-input');
+            const list = document.getElementById('todo-list');
+            if (input.value.trim() === '') return;
+            const li = document.createElement('li');
+            li.innerHTML = `<span>${input.value}</span><button class="delete-btn" onclick="this.parentElement.remove()">✕</button>`;
+            list.appendChild(li);
+            input.value = '';
+        }
+        document.getElementById('todo-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') addTask(); });
+    </script>
 </body>
 </html>
