@@ -26,11 +26,22 @@
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  /* Screen-reader only utility */
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   body {
     font-family: 'JetBrains Mono', monospace;
     background: var(--bg);
     color: var(--text);
-    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -75,7 +86,6 @@
     align-items: flex-end;
     gap: 5px;
     flex-shrink: 0;
-    width: fit-content;
   }
   .clock-time {
     font-family: 'IBM Plex Mono', monospace;
@@ -94,13 +104,19 @@
   }
   .seconds-bar-fill {
     height: 100%;
-    width: 0%;
     background: var(--text-3);
     border-radius: 99px;
     transition: width 0.95s linear;
   }
 
   /* Input */
+  .input-label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-3);
+    font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 5px;
+  }
   .input-wrap {
     position: relative;
     margin-bottom: 0.7rem;
@@ -167,54 +183,16 @@
   .priority-btn.active-mid  { border-color: var(--mid);  color: var(--mid);  background: #fef3c755; }
   .priority-btn.active-high { border-color: var(--high); color: var(--high); background: #fee2e255; }
 
-  .time-pill {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .time-pill label {
-    font-size: 0.7rem;
-    color: var(--text-3);
-    font-family: 'IBM Plex Mono', monospace;
-  }
-  input[type="time"] {
-    border: 1.5px solid var(--border);
-    background: transparent;
-    border-radius: 8px;
-    padding: 4px 8px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-2);
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  input[type="time"]:focus { border-color: var(--accent); }
-
-  /* kbd strip */
-  .kbd-strip {
-    font-size: 0.64rem;
-    color: var(--text-3);
-    font-family: 'IBM Plex Mono', monospace;
-    margin-bottom: 1.25rem;
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
-  .kbd-strip kbd {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 1px 5px;
-    font-family: inherit;
-    font-size: inherit;
-  }
-
   /* Divider */
   .divider { height: 1px; background: var(--border); margin-bottom: 0.5rem; }
 
-  /* Filters - underline tab style */
-  .filters { display: flex; gap: 0; margin-bottom: 0.25rem; }
+  /* Filters */
+  .filters {
+    display: flex;
+    gap: 0;
+    margin-bottom: 0.25rem;
+    role: tablist;
+  }
   .filter-btn {
     flex: 1;
     padding: 8px 0;
@@ -235,10 +213,40 @@
     border-bottom-color: var(--text);
   }
 
-  /* Task list - flat rows */
+  /* Bulk actions */
+  .bulk-bar {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    margin-bottom: 4px;
+  }
+  .bulk-bar.visible { display: flex; }
+  .bulk-count {
+    font-size: 0.72rem;
+    color: var(--text-2);
+    font-family: 'IBM Plex Mono', monospace;
+    flex: 1;
+  }
+  .bulk-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .bulk-btn:hover { background: var(--surface-2); }
+  .bulk-btn.danger:hover { background: #fee2e2; border-color: var(--high); color: var(--high); }
+
+  /* Task list */
   ul {
     list-style: none;
-    max-height: calc(100vh - 480px);
+    max-height: 45dvh;
     min-height: 60px;
     overflow-y: auto;
     margin-top: 0.25rem;
@@ -251,7 +259,6 @@
     gap: 11px;
     padding: 13px 0;
     border-bottom: 1px solid var(--border);
-    cursor: pointer;
     animation: fadeUp 0.2s ease both;
     transition: opacity 0.22s ease, transform 0.22s ease;
   }
@@ -277,7 +284,13 @@
     transform: translate(-50%, -62%) rotate(45deg) scale(1);
   }
 
-  /* Check circle with CSS checkmark */
+  li.selected { background: rgba(26,32,40,0.03); border-radius: 8px; }
+
+  /* Drag-and-drop */
+  li.dragging { opacity: 0.4; }
+  li.drag-over { border-top: 2px solid var(--accent); }
+
+  /* Check circle */
   .check-circle {
     width: 19px;
     height: 19px;
@@ -286,6 +299,7 @@
     flex-shrink: 0;
     position: relative;
     transition: background 0.2s, border-color 0.2s;
+    cursor: pointer;
   }
   .check-circle::after {
     content: '';
@@ -302,19 +316,26 @@
                 transform 0.18s cubic-bezier(.34,1.56,.64,1);
   }
 
-  /* 5px priority dot */
-  .p-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
+  /* Priority badge (replaces color-only dot) */
+  .p-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 4px;
     flex-shrink: 0;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
   }
-  .p-dot.high { background: var(--high); }
-  .p-dot.mid  { background: var(--mid);  }
-  .p-dot.low  { background: var(--low);  }
+  .p-badge.high { background: #fee2e2; color: var(--high); }
+  .p-badge.mid  { background: #fef3c7; color: var(--mid); }
+  .p-badge.low  { background: #d8f3dc; color: var(--low); }
 
-  .task-text {
+  .task-body {
     flex: 1;
+    min-width: 0;
+  }
+  .task-text {
     font-size: 0.91rem;
     font-weight: 500;
     word-break: break-word;
@@ -322,13 +343,66 @@
     color: var(--text);
     transition: color 0.2s;
   }
-
-  .task-time {
+  .task-meta {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.66rem;
+    font-size: 0.63rem;
     color: var(--text-3);
-    flex-shrink: 0;
+    margin-top: 2px;
   }
+
+  /* Select checkbox (bulk mode) */
+  .select-box {
+    width: 15px;
+    height: 15px;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+    display: none;
+  }
+  .select-box.checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .select-box.checked::after {
+    content: '';
+    width: 3px;
+    height: 6px;
+    border-right: 1.5px solid #fff;
+    border-bottom: 1.5px solid #fff;
+    transform: rotate(45deg) translateY(-1px);
+  }
+  .bulk-mode .select-box { display: flex; }
+
+  /* Drag handle */
+  .drag-handle {
+    cursor: grab;
+    color: var(--text-3);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+    padding: 0 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+  .drag-handle span {
+    display: block;
+    width: 10px;
+    height: 1.5px;
+    background: var(--text-3);
+    border-radius: 99px;
+  }
+  li:hover .drag-handle { opacity: 1; }
+  .drag-handle:active { cursor: grabbing; }
 
   .delete-btn {
     background: transparent;
@@ -346,15 +420,25 @@
     opacity: 0;
     transition: opacity 0.15s, background 0.15s, color 0.15s;
   }
-  li:hover .delete-btn { opacity: 1; }
+  li:hover .delete-btn,
+  li:focus-within .delete-btn { opacity: 1; }
   .delete-btn:hover { background: #fee2e2; color: var(--high); }
 
-  /* Empty */
+  /* Empty state */
   .empty-state {
     padding: 2.5rem 0 1.5rem;
     color: var(--text-3);
     font-size: 0.82rem;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .empty-icon {
+    width: 36px;
+    height: 36px;
+    opacity: 0.25;
   }
 
   /* Footer */
@@ -423,17 +507,54 @@
     cursor: pointer;
   }
   .toast-undo:hover { background: rgba(255,255,255,0.1); }
+
+  /* Carry-over banner */
+  .carry-banner {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    font-size: 0.72rem;
+    color: var(--mid);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .carry-banner.visible { display: flex; }
+  .carry-yes {
+    margin-left: auto;
+    background: none;
+    border: 1px solid var(--mid);
+    color: var(--mid);
+    padding: 3px 9px;
+    border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .carry-no {
+    background: none;
+    border: none;
+    color: var(--text-3);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
-<div class="container">
+<div class="container" role="main">
+  <h2 class="sr-only">My Day — task manager</h2>
 
   <div class="header">
     <div class="header-left">
       <h1>My Day</h1>
-      <div class="date" id="date-display"></div>
+      <div class="date" id="date-display" aria-live="polite"></div>
     </div>
-    <div class="clock-block">
+    <div class="clock-block" aria-hidden="true">
       <div class="clock-time" id="clock-time"></div>
       <div class="seconds-bar-track">
         <div class="seconds-bar-fill" id="seconds-bar"></div>
@@ -441,213 +562,132 @@
     </div>
   </div>
 
+  <!-- Carry-over banner (shown when incomplete tasks exist from a previous day) -->
+  <div class="carry-banner" id="carry-banner" role="alert">
+    <span id="carry-text"></span>
+    <button class="carry-yes" onclick="carryOver()">Carry over</button>
+    <button class="carry-no"  onclick="dismissCarry()">Dismiss</button>
+  </div>
+
+  <label class="sr-only" for="task-input">New task</label>
   <div class="input-wrap">
-    <input type="text" id="task-input" placeholder="Add a task..." maxlength="80" autocomplete="off">
-    <button class="add-btn" onclick="addTask()" title="Add (Enter)">+</button>
+    <input type="text" id="task-input" placeholder="Add a task…" maxlength="80" autocomplete="off">
+    <button class="add-btn" id="add-btn" aria-label="Add task">+</button>
   </div>
 
-  <div class="toolbar">
-    <button class="priority-btn active-low" data-p="low"  onclick="selectPriority('low')">Low</button>
-    <button class="priority-btn"            data-p="mid"  onclick="selectPriority('mid')">Mid</button>
-    <button class="priority-btn"            data-p="high" onclick="selectPriority('high')">High</button>
-    <div class="time-pill">
-      <label for="time-input">at</label>
-      <input type="time" id="time-input">
-    </div>
-  </div>
-
-  <div class="kbd-strip">
-    <kbd>Enter</kbd> add &nbsp;·&nbsp; <kbd>Alt 1/2/3</kbd> priority
+  <div class="toolbar" role="group" aria-label="Priority">
+    <button class="priority-btn active-low" data-p="low"  aria-pressed="true"  onclick="selectPriority('low')">Low</button>
+    <button class="priority-btn"            data-p="mid"  aria-pressed="false" onclick="selectPriority('mid')">Mid</button>
+    <button class="priority-btn"            data-p="high" aria-pressed="false" onclick="selectPriority('high')">High</button>
   </div>
 
   <div class="divider"></div>
 
-  <div class="filters">
-    <button class="filter-btn active" data-f="all"    onclick="setFilter('all')">All <span id="cnt-all"></span></button>
-    <button class="filter-btn"        data-f="active" onclick="setFilter('active')">Active <span id="cnt-active"></span></button>
-    <button class="filter-btn"        data-f="done"   onclick="setFilter('done')">Done <span id="cnt-done"></span></button>
+  <div class="filters" role="tablist" aria-label="Filter tasks">
+    <button class="filter-btn active" role="tab" aria-selected="true"  data-f="all"    onclick="setFilter('all')">All <span id="cnt-all"></span></button>
+    <button class="filter-btn"        role="tab" aria-selected="false" data-f="active" onclick="setFilter('active')">Active <span id="cnt-active"></span></button>
+    <button class="filter-btn"        role="tab" aria-selected="false" data-f="done"   onclick="setFilter('done')">Done <span id="cnt-done"></span></button>
   </div>
 
-  <ul id="task-list"></ul>
+  <!-- Bulk action bar -->
+  <div class="bulk-bar" id="bulk-bar" role="toolbar" aria-label="Bulk actions">
+    <span class="bulk-count" id="bulk-count" aria-live="polite"></span>
+    <button class="bulk-btn" onclick="bulkDone()" aria-label="Mark selected tasks done">Mark done</button>
+    <button class="bulk-btn danger" onclick="bulkDelete()" aria-label="Delete selected tasks">Delete</button>
+    <button class="bulk-btn" onclick="exitBulk()" aria-label="Exit bulk selection">Cancel</button>
+  </div>
+
+  <ul id="task-list" role="list" aria-label="Tasks" aria-live="polite" aria-relevant="additions removals"></ul>
 
   <div class="footer-row">
-    <span class="task-counter" id="task-counter"></span>
+    <span class="task-counter" id="task-counter" aria-live="polite"></span>
     <div class="footer-actions">
-      <button class="ghost-btn danger" id="clear-btn" onclick="clearDone()">Clear done</button>
-      <button class="ghost-btn" id="sort-btn" onclick="toggleSort()">Sort</button>
+      <button class="ghost-btn danger" id="clear-btn" onclick="clearDone()" aria-label="Clear completed tasks">Clear done</button>
+      <button class="ghost-btn" id="sort-btn" onclick="toggleSort()" aria-pressed="false" aria-label="Sort by priority">Sort</button>
+      <button class="ghost-btn" id="bulk-toggle" onclick="toggleBulk()" aria-pressed="false" aria-label="Toggle bulk selection">Select</button>
     </div>
   </div>
-
 </div>
 
-<div class="toast" id="toast">
-  Task removed
+<div class="toast" id="toast" role="status" aria-live="assertive">
+  <span id="toast-msg">Task removed</span>
   <button class="toast-undo" onclick="undoDelete()">Undo</button>
 </div>
 
 <script>
-  let tasks            = JSON.parse(localStorage.getItem('myDay_tasks') || '[]');
+  /* ── Storage ── */
+  const Storage = (() => {
+    function get(key, fallback) {
+      try { const v = localStorage.getItem(key); return v !== null ? JSON.parse(v) : fallback; }
+      catch { return fallback; }
+    }
+    function set(key, val) {
+      try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+    }
+    return { get, set };
+  })();
+
+  /* ── State ── */
+  let tasks            = Storage.get('myDay_tasks', []);
   let selectedPriority = 'low';
   let activeFilter     = 'all';
   let sortByPriority   = false;
+  let bulkMode         = false;
+  let selectedIds      = new Set();
   let deletedTask      = null;
   let deletedIndex     = null;
   let toastTimer       = null;
+  let idCounter        = Storage.get('myDay_idCounter', 1);
+  let lastSavedDate    = Storage.get('myDay_lastDate', null);
 
-  const priorityOrder = { high: 0, mid: 1, low: 2 };
+  const priorityOrder  = { high: 0, mid: 1, low: 2 };
 
-  function save() { localStorage.setItem('myDay_tasks', JSON.stringify(tasks)); }
+  function nextId() { idCounter++; Storage.set('myDay_idCounter', idCounter); return idCounter; }
+  function save()   { Storage.set('myDay_tasks', tasks); }
 
+  /* ── Carry-over check ── */
+  function checkCarryOver() {
+    const today = new Date().toDateString();
+    if (lastSavedDate && lastSavedDate !== today) {
+      const incomplete = tasks.filter(t => !t.done && !t.carriedOver);
+      if (incomplete.length) {
+        const banner = document.getElementById('carry-banner');
+        document.getElementById('carry-text').textContent =
+          `${incomplete.length} incomplete task${incomplete.length > 1 ? 's' : ''} from yesterday`;
+        banner.classList.add('visible');
+      }
+    }
+    Storage.set('myDay_lastDate', today);
+    lastSavedDate = today;
+  }
+
+  function carryOver() {
+    tasks.forEach(t => { if (!t.done) t.carriedOver = true; });
+    save(); render();
+    document.getElementById('carry-banner').classList.remove('visible');
+  }
+  function dismissCarry() {
+    document.getElementById('carry-banner').classList.remove('visible');
+  }
+
+  /* ── Priority ── */
   function selectPriority(p) {
     selectedPriority = p;
     document.querySelectorAll('.priority-btn').forEach(btn => {
       btn.className = 'priority-btn';
-      if (btn.dataset.p === p) btn.classList.add('active-' + p);
+      const active = btn.dataset.p === p;
+      if (active) btn.classList.add('active-' + p);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
   }
 
+  /* ── Filter ── */
   function setFilter(f) {
     activeFilter = f;
-    document.querySelectorAll('.filter-btn').forEach(btn =>
-      btn.classList.toggle('active', btn.dataset.f === f)
-    );
-    render();
-  }
-
-  function toggleSort() {
-    sortByPriority = !sortByPriority;
-    document.getElementById('sort-btn').classList.toggle('active', sortByPriority);
-    render();
-  }
-
-  function addTask() {
-    const input     = document.getElementById('task-input');
-    const timeInput = document.getElementById('time-input');
-    const text      = input.value.trim();
-    if (!text) return;
-    tasks.push({ text, priority: selectedPriority, done: false, id: Date.now(), time: timeInput.value || null });
-    input.value = '';
-    timeInput.value = '';
-    input.focus();
-    save(); render();
-  }
-
-  function toggleTask(id) {
-    const li = document.querySelector(`li[data-id="${id}"]`);
-    if (!li) return;
-    li.classList.add('completing');
-    setTimeout(() => {
-      const t = tasks.find(t => t.id === id);
-      if (t) { t.done = !t.done; save(); render(); }
-    }, 200);
-  }
-
-  function deleteTask(id, e) {
-    e.stopPropagation();
-    const idx = tasks.findIndex(t => t.id === id);
-    if (idx === -1) return;
-    deletedTask  = tasks[idx];
-    deletedIndex = idx;
-    tasks.splice(idx, 1);
-    save(); render(); showToast();
-  }
-
-  function undoDelete() {
-    if (!deletedTask) return;
-    tasks.splice(deletedIndex, 0, deletedTask);
-    deletedTask = null;
-    save(); render(); hideToast();
-  }
-
-  function showToast() {
-    clearTimeout(toastTimer);
-    document.getElementById('toast').classList.add('show');
-    toastTimer = setTimeout(hideToast, 4000);
-  }
-  function hideToast() { document.getElementById('toast').classList.remove('show'); }
-
-  function clearDone() { tasks = tasks.filter(t => !t.done); save(); render(); }
-
-  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-  function render() {
-    const list   = document.getElementById('task-list');
-    list.innerHTML = '';
-
-    const total  = tasks.length;
-    const active = tasks.filter(t => !t.done).length;
-    const done   = tasks.filter(t => t.done).length;
-
-    document.getElementById('cnt-all').textContent    = total  ? `(${total})`  : '';
-    document.getElementById('cnt-active').textContent = active ? `(${active})` : '';
-    document.getElementById('cnt-done').textContent   = done   ? `(${done})`   : '';
-
-    document.getElementById('task-counter').textContent =
-      total === 0 ? '' : `${active} of ${total} remaining`;
-
-    document.getElementById('clear-btn').classList.toggle('visible', done > 0);
-
-    let visible = [...tasks];
-    if (activeFilter === 'active') visible = visible.filter(t => !t.done);
-    if (activeFilter === 'done')   visible = visible.filter(t => t.done);
-    if (sortByPriority) visible.sort((a,b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-
-    if (visible.length === 0) {
-      const msgs = { all: 'No tasks yet.', active: 'All caught up.', done: 'Nothing completed yet.' };
-      list.innerHTML = `<div class="empty-state">${msgs[activeFilter]}</div>`;
-      return;
-    }
-
-    visible.forEach(task => {
-      const li       = document.createElement('li');
-      li.dataset.id  = task.id;
-      li.dataset.p   = task.priority;
-      if (task.done) li.classList.add('done');
-      li.onclick = () => toggleTask(task.id);
-
-      const timeHtml = task.time ? `<span class="task-time">${task.time}</span>` : '';
-
-      li.innerHTML =
-        `<div class="check-circle"></div>` +
-        `<div class="p-dot ${task.priority}"></div>` +
-        `<span class="task-text">${esc(task.text)}</span>` +
-        timeHtml +
-        `<button class="delete-btn" onclick="deleteTask(${task.id},event)" title="Delete">✕</button>`;
-
-      list.appendChild(li);
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      const active = btn.dataset.f === f;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
     });
-  }
-
-  function setDate() {
-    const d = new Date();
-    document.getElementById('date-display').textContent =
-      d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-  }
-
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && document.activeElement.id === 'task-input') addTask();
-    if (e.altKey && e.key === '1') { e.preventDefault(); selectPriority('low');  }
-    if (e.altKey && e.key === '2') { e.preventDefault(); selectPriority('mid');  }
-    if (e.altKey && e.key === '3') { e.preventDefault(); selectPriority('high'); }
-  });
-
-  setDate();
-  render();
-
-  // Clock + seconds bar
-  function updateClock() {
-    const now  = new Date();
-    const hrs  = now.getHours();
-    const h    = String(hrs % 12 || 12).padStart(2, '0');
-    const m    = String(now.getMinutes()).padStart(2, '0');
-    const secs = now.getSeconds();
-    const s = String(now.getSeconds()).padStart(2, '0');
-    const ampm = hrs >= 12 ? 'PM' : 'AM';
-    document.getElementById('clock-time').textContent = h + ':' + m + ':' + s + ' ' + ampm;
-    document.getElementById('seconds-bar').style.width = ((secs / 59) * 100) + '%';
-  }
-  updateClock();
-  setInterval(updateClock, 1000);
-</script>
-</body>
-</html>
+    render();
+  
