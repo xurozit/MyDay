@@ -100,6 +100,26 @@
     transition: width 0.95s linear;
   }
 
+  /* Sound toggle */
+  .sound-btn {
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--text-3);
+    transition: all 0.15s;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .sound-btn:hover { border-color: var(--text-2); color: var(--text-2); }
+  .sound-btn.muted { opacity: 0.4; }
+
   /* Input */
   .input-wrap {
     position: relative;
@@ -191,29 +211,15 @@
   }
   input[type="time"]:focus { border-color: var(--accent); }
 
-  /* kbd strip */
+  /* kbd strip — hidden visually, shortcuts remain functional */
   .kbd-strip {
-    font-size: 0.64rem;
-    color: var(--text-3);
-    font-family: 'IBM Plex Mono', monospace;
-    margin-bottom: 1.25rem;
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
-  .kbd-strip kbd {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 1px 5px;
-    font-family: inherit;
-    font-size: inherit;
+    display: none;
   }
 
   /* Divider */
   .divider { height: 1px; background: var(--border); margin-bottom: 0.5rem; }
 
-  /* Filters - underline tab style */
+  /* Filters */
   .filters { display: flex; gap: 0; margin-bottom: 0.25rem; }
   .filter-btn {
     flex: 1;
@@ -235,7 +241,7 @@
     border-bottom-color: var(--text);
   }
 
-  /* Task list - flat rows */
+  /* Task list */
   ul {
     list-style: none;
     max-height: calc(100vh - 480px);
@@ -277,7 +283,6 @@
     transform: translate(-50%, -62%) rotate(45deg) scale(1);
   }
 
-  /* Check circle with CSS checkmark */
   .check-circle {
     width: 19px;
     height: 19px;
@@ -302,7 +307,6 @@
                 transform 0.18s cubic-bezier(.34,1.56,.64,1);
   }
 
-  /* 5px priority dot */
   .p-dot {
     width: 5px;
     height: 5px;
@@ -349,7 +353,6 @@
   li:hover .delete-btn { opacity: 1; }
   .delete-btn:hover { background: #fee2e2; color: var(--high); }
 
-  /* Empty */
   .empty-state {
     padding: 2.5rem 0 1.5rem;
     color: var(--text-3);
@@ -423,6 +426,38 @@
     cursor: pointer;
   }
   .toast-undo:hover { background: rgba(255,255,255,0.1); }
+
+  /* All-done celebration overlay */
+  .confetti-ring {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .confetti-ring.show { opacity: 1; }
+  .confetti-ring svg { width: 320px; height: 320px; }
+
+  /* Rainbow cloud-river easter egg */
+  .rainbow-river {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    overflow: hidden;
+  }
+  .rainbow-river.show { animation: riverFade 3s ease forwards; }
+  @keyframes riverFade {
+    0%   { opacity: 0; }
+    8%   { opacity: 1; }
+    80%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
 </style>
 </head>
 <body>
@@ -433,10 +468,13 @@
       <h1>My Day</h1>
       <div class="date" id="date-display"></div>
     </div>
-    <div class="clock-block">
-      <div class="clock-time" id="clock-time"></div>
-      <div class="seconds-bar-track">
-        <div class="seconds-bar-fill" id="seconds-bar"></div>
+    <div style="display:flex;align-items:flex-start;gap:8px;">
+      <button class="sound-btn" id="sound-btn" onclick="toggleSound()" title="Toggle sound">🔊</button>
+      <div class="clock-block">
+        <div class="clock-time" id="clock-time"></div>
+        <div class="seconds-bar-track">
+          <div class="seconds-bar-fill" id="seconds-bar"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -485,7 +523,360 @@
   <button class="toast-undo" onclick="undoDelete()">Undo</button>
 </div>
 
+<div class="confetti-ring" id="confetti-ring"></div>
+<div class="rainbow-river" id="rainbow-river">
+  <canvas id="rainbow-canvas"></canvas>
+</div>
+
 <script>
+  // ─── Audio Engine ──────────────────────────────────────────────────────────
+  let audioCtx = null;
+  let soundEnabled = localStorage.getItem('myDay_sound') !== 'false';
+
+  function getCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function toggleSound() {
+    soundEnabled = !soundEnabled;
+    localStorage.setItem('myDay_sound', soundEnabled);
+    const btn = document.getElementById('sound-btn');
+    btn.textContent = soundEnabled ? '🔊' : '🔇';
+    btn.classList.toggle('muted', !soundEnabled);
+    if (soundEnabled) playPop(); // little confirmation beep
+  }
+
+  // Initialise button state on load
+  document.getElementById('sound-btn').textContent = soundEnabled ? '🔊' : '🔇';
+  document.getElementById('sound-btn').classList.toggle('muted', !soundEnabled);
+
+  /**
+   * Envelope helper: attack → sustain → release on a gain node.
+   */
+  function envelope(gainNode, ctx, { attack = 0.005, sustain = 0.12, release = 0.18, peak = 0.35 } = {}) {
+    const t = ctx.currentTime;
+    gainNode.gain.setValueAtTime(0, t);
+    gainNode.gain.linearRampToValueAtTime(peak, t + attack);
+    gainNode.gain.setValueAtTime(peak, t + attack + sustain);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, t + attack + sustain + release);
+  }
+
+  // ── 1. Task added — soft "pop" (short noise burst + pitched click) ──────────
+  function playPop() {
+    if (!soundEnabled) return;
+    const ctx = getCtx();
+
+    // Short pitched blip
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.06);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    envelope(gain, ctx, { attack: 0.003, sustain: 0.01, release: 0.06, peak: 0.22 });
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.1);
+
+    // Subtle noise click
+    const bufSize = ctx.sampleRate * 0.04;
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufSize);
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    const nGain = ctx.createGain();
+    nGain.gain.setValueAtTime(0.08, ctx.currentTime);
+    nGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
+    noise.connect(nGain);
+    nGain.connect(ctx.destination);
+    noise.start(ctx.currentTime);
+  }
+
+  // ── 2. Task complete — warm chime ding ──────────────────────────────────────
+  function playDing(isDone) {
+    if (!soundEnabled) return;
+    const ctx = getCtx();
+
+    // Two-partial chime: fundamental + overtone
+    const freqs = isDone ? [880, 1320] : [660, 990]; // higher for done, lower for undone
+
+    freqs.forEach((freq, i) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const delay = i * 0.04;
+      const t = ctx.currentTime + delay;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.28 - i * 0.08, t + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+      osc.start(t);
+      osc.stop(t + 0.65);
+    });
+  }
+
+  // ── 3a. Delete — soft whoosh (filtered noise sweep down) ────────────────────
+  function playWhoosh() {
+    if (!soundEnabled) return;
+    const ctx = getCtx();
+
+    const bufSize = ctx.sampleRate * 0.25;
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1800, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.22);
+    filter.Q.value = 1.2;
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start(ctx.currentTime);
+  }
+
+  // ── 3b. Undo — reversed whoosh (noise sweep up) ─────────────────────────────
+  function playUndo() {
+    if (!soundEnabled) return;
+    const ctx = getCtx();
+
+    const bufSize = ctx.sampleRate * 0.22;
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(200, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(1600, ctx.currentTime + 0.2);
+    filter.Q.value = 1.2;
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.16, ctx.currentTime + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start(ctx.currentTime);
+  }
+
+  // ── 4. Priority selection — three ascending tones ───────────────────────────
+  const priorityFreqs = { low: 330, mid: 494, high: 659 }; // E3, B4, E5 — a clean fifth each step
+
+  function playPriorityTone(p) {
+    if (!soundEnabled) return;
+    const ctx  = getCtx();
+    const freq = priorityFreqs[p];
+
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    envelope(gain, ctx, { attack: 0.004, sustain: 0.04, release: 0.1, peak: 0.18 });
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.18);
+  }
+
+  // ── 5. All-done celebration — short ascending arpeggio ──────────────────────
+  function playAllDone() {
+    if (!soundEnabled) return;
+    const ctx  = getCtx();
+    // Major pentatonic: C5 E5 G5 B5 C6
+    const notes = [523, 659, 784, 988, 1047];
+
+    notes.forEach((freq, i) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const t = ctx.currentTime + i * 0.1;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.22, t + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+      osc.start(t);
+      osc.stop(t + 0.55);
+    });
+
+    // Brief confetti ring
+    const ring = document.getElementById('confetti-ring');
+    ring.classList.add('show');
+    setTimeout(() => ring.classList.remove('show'), 1800);
+  }
+
+  // ── 6. Easter egg — magical soothing sound (Clear Done, 3 seconds) ──────────
+  function playVictoryFanfare() {
+    if (!soundEnabled) return;
+    const ctx = getCtx();
+
+    // Soft reverb-like effect via multiple delayed sine voices
+    // Harp-like ascending glide: C maj 9 arpeggio spread over 3s
+    const harpNotes = [
+      { freq: 523.25, t: 0.00 },  // C5
+      { freq: 659.25, t: 0.18 },  // E5
+      { freq: 783.99, t: 0.36 },  // G5
+      { freq: 1046.5, t: 0.54 },  // C6
+      { freq: 1174.7, t: 0.72 },  // D6
+      { freq: 1318.5, t: 0.90 },  // E6
+      { freq: 1567.9, t: 1.10 },  // G6
+      { freq: 2093.0, t: 1.32 },  // C7  — gentle shimmer at the top
+    ];
+
+    harpNotes.forEach(({ freq, t: delay }) => {
+      // Main harp pluck — sine with quick attack, long tail
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      const t = ctx.currentTime + delay;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.20, t + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 1.65);
+
+      // Subtle octave harmonic for shimmer
+      const osc2  = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(freq * 2, ctx.currentTime);
+      gain2.gain.setValueAtTime(0, t);
+      gain2.gain.linearRampToValueAtTime(0.06, t + 0.012);
+      gain2.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(t);
+      osc2.stop(t + 1.0);
+    });
+
+    // Soft pad chord underneath — C maj, slow attack, holds ~2.5s then fades
+    const padNotes = [261.63, 329.63, 392.00, 523.25]; // C4 E4 G4 C5
+    padNotes.forEach((freq, i) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      osc.detune.setValueAtTime(i * 2, ctx.currentTime); // very slight chorus
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.07, ctx.currentTime + 0.4);
+      gain.gain.setValueAtTime(0.07, ctx.currentTime + 2.2);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3.0);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 3.05);
+    });
+
+    // Gentle closing bell at ~2s
+    const bell = ctx.createOscillator();
+    const bGain = ctx.createGain();
+    bell.type = 'sine';
+    bell.frequency.setValueAtTime(2637, ctx.currentTime + 2.0); // E7 — bright but soft
+    bGain.gain.setValueAtTime(0, ctx.currentTime + 2.0);
+    bGain.gain.linearRampToValueAtTime(0.10, ctx.currentTime + 2.01);
+    bGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3.0);
+    bell.connect(bGain);
+    bGain.connect(ctx.destination);
+    bell.start(ctx.currentTime + 2.0);
+    bell.stop(ctx.currentTime + 3.05);
+  }
+
+  // ── Rainbow cloud-river renderer ─────────────────────────────────────────────
+  // Warm pastel palette — peach, coral, apricot, champagne, blush
+  const pastelPalette = [
+    { h: 10,  s: 100, l: 76 },  // #FF9A86 coral-peach
+    { h: 20,  s: 100, l: 80 },  // #FFB399 apricot
+    { h: 35,  s: 100, l: 83 },  // #FFD6A6 warm champagne
+    { h: 48,  s: 100, l: 87 },  // #FFF0BE soft gold
+    { h: 345, s: 100, l: 87 },  // #FFB6C1 blush pink
+    { h: 15,  s: 100, l: 84 },  // peachy cream
+    { h: 28,  s: 100, l: 86 },  // #FFCAA5 light apricot
+  ];
+
+  function launchRainbowRiver() {
+    const overlay = document.getElementById('rainbow-river');
+    const canvas  = document.getElementById('rainbow-canvas');
+    const W = canvas.width  = window.innerWidth;
+    const H = canvas.height = window.innerHeight;
+    const ctx2 = canvas.getContext('2d');
+
+    const puffs = Array.from({ length: 130 }, (_, i) => {
+      const pal = pastelPalette[i % pastelPalette.length];
+      return {
+        x:     Math.random() * W * 1.5 - W * 0.25,
+        y:     Math.random() * H,
+        r:     70 + Math.random() * 130,
+        h:     pal.h + (Math.random() - 0.5) * 12,
+        s:     pal.s,
+        l:     pal.l + (Math.random() - 0.5) * 6,
+        speed: 14 + Math.random() * 22,
+        alpha: 0.52 + Math.random() * 0.32,
+        vy:    (Math.random() - 0.5) * 3,
+      };
+    });
+
+    const start    = performance.now();
+    const duration = 3000;
+
+    function frame(now) {
+      const elapsed = now - start;
+      if (elapsed > duration) {
+        ctx2.clearRect(0, 0, W, H);
+        overlay.classList.remove('show');
+        return;
+      }
+      const progress = elapsed / duration;
+      const fadeOut  = progress > 0.80 ? 1 - (progress - 0.80) / 0.20 : 1;
+      const fadeIn   = progress < 0.08 ? progress / 0.08 : 1;
+      const opacity  = Math.min(fadeIn, fadeOut);
+
+      ctx2.clearRect(0, 0, W, H);
+
+      puffs.forEach(p => {
+        p.x += p.speed * 0.016 * 55;
+        p.y += p.vy;
+
+        const grad = ctx2.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+        grad.addColorStop(0,   `hsla(${p.h},      ${p.s}%, ${p.l}%,       ${p.alpha * opacity})`);
+        grad.addColorStop(0.5, `hsla(${p.h + 15}, ${p.s}%, ${p.l + 4}%,   ${p.alpha * 0.45 * opacity})`);
+        grad.addColorStop(1,   `hsla(${p.h + 30}, ${p.s}%, ${p.l + 8}%,   0)`);
+
+        ctx2.beginPath();
+        ctx2.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx2.fillStyle = grad;
+        ctx2.fill();
+      });
+
+      requestAnimationFrame(frame);
+    }
+
+    overlay.classList.add('show');
+    requestAnimationFrame(frame);
+  }
   let tasks            = JSON.parse(localStorage.getItem('myDay_tasks') || '[]');
   let selectedPriority = 'low';
   let activeFilter     = 'all';
@@ -493,6 +884,7 @@
   let deletedTask      = null;
   let deletedIndex     = null;
   let toastTimer       = null;
+  let prevActiveCount  = null; // used to detect transition to zero
 
   const priorityOrder = { high: 0, mid: 1, low: 2 };
 
@@ -504,6 +896,7 @@
       btn.className = 'priority-btn';
       if (btn.dataset.p === p) btn.classList.add('active-' + p);
     });
+    playPriorityTone(p);
   }
 
   function setFilter(f) {
@@ -529,6 +922,7 @@
     input.value = '';
     timeInput.value = '';
     input.focus();
+    playPop();
     save(); render();
   }
 
@@ -536,8 +930,13 @@
     const li = document.querySelector(`li[data-id="${id}"]`);
     if (!li) return;
     li.classList.add('completing');
+
+    // Fire sound immediately for snappy feel
+    const t = tasks.find(t => t.id === id);
+    const willBeDone = t && !t.done;
+    playDing(willBeDone);
+
     setTimeout(() => {
-      const t = tasks.find(t => t.id === id);
       if (t) { t.done = !t.done; save(); render(); }
     }, 200);
   }
@@ -549,6 +948,7 @@
     deletedTask  = tasks[idx];
     deletedIndex = idx;
     tasks.splice(idx, 1);
+    playWhoosh();
     save(); render(); showToast();
   }
 
@@ -556,6 +956,7 @@
     if (!deletedTask) return;
     tasks.splice(deletedIndex, 0, deletedTask);
     deletedTask = null;
+    playUndo();
     save(); render(); hideToast();
   }
 
@@ -566,7 +967,12 @@
   }
   function hideToast() { document.getElementById('toast').classList.remove('show'); }
 
-  function clearDone() { tasks = tasks.filter(t => !t.done); save(); render(); }
+  function clearDone() {
+    tasks = tasks.filter(t => !t.done);
+    playVictoryFanfare();
+    launchRainbowRiver();
+    save(); render();
+  }
 
   function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -577,6 +983,12 @@
     const total  = tasks.length;
     const active = tasks.filter(t => !t.done).length;
     const done   = tasks.filter(t => t.done).length;
+
+    // Detect transition to all-done
+    if (prevActiveCount !== null && prevActiveCount > 0 && active === 0 && total > 0) {
+      setTimeout(playAllDone, 250); // slight delay so ding lands first
+    }
+    prevActiveCount = active;
 
     document.getElementById('cnt-all').textContent    = total  ? `(${total})`  : '';
     document.getElementById('cnt-active').textContent = active ? `(${active})` : '';
@@ -641,7 +1053,7 @@
     const h    = String(hrs % 12 || 12).padStart(2, '0');
     const m    = String(now.getMinutes()).padStart(2, '0');
     const secs = now.getSeconds();
-    const s = String(now.getSeconds()).padStart(2, '0');
+    const s    = String(secs).padStart(2, '0');
     const ampm = hrs >= 12 ? 'PM' : 'AM';
     document.getElementById('clock-time').textContent = h + ':' + m + ':' + s + ' ' + ampm;
     document.getElementById('seconds-bar').style.width = ((secs / 59) * 100) + '%';
