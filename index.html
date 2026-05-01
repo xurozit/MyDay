@@ -3,1182 +3,235 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Day</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231c1a17'/><text y='.85em' font-size='65' x='18' fill='white' font-family='sans-serif' font-weight='bold'>✓</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<title>My Day Mobile</title>
+
 <style>
-  :root {
-    --bg:         #eeebe4;
-    --surface:    #f7f5f1;
-    --surface-2:  #eae7e0;
-    --border:     #dedad2;
-    --text:       #1A2028;
-    --text-2:     #5f6570;
-    --text-3:     #a09890;
-    --accent:     #1A2028;
-    --done-green: #2d6a4f;
-    --high:       #b91c1c;
-    --mid:        #a16207;
-    --low:        #2d6a4f;
-    --radius:     16px;
-    --radius-sm:  9px;
-  }
+:root{
+  --bg:#0f172a;
+  --card:#111827;
+  --text:#e5e7eb;
+  --muted:#6b7280;
+  --accent:#22c55e;
+}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body{
+  margin:0;
+  font-family:system-ui;
+  background:var(--bg);
+  color:var(--text);
+}
 
-  body {
-    font-family: 'JetBrains Mono', monospace;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 3rem 1rem 5rem;
-  }
+.app{
+  max-width:420px;
+  margin:auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
 
-  .container {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 2.25rem 1.75rem 1.5rem;
-    width: 100%;
-    max-width: 440px;
-    box-shadow: 0 4px 24px rgba(26,32,40,0.07);
-    position: relative;
-    z-index: 10;
-  }
+.header{
+  padding:20px;
+  font-size:24px;
+  font-weight:600;
+}
 
-  .header {
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-  .header h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: -1.5px;
-    line-height: 1;
-  }
-  .header .date {
-    font-size: 0.78rem;
-    color: var(--text-3);
-    margin-top: 6px;
-    font-family: 'IBM Plex Mono', monospace;
-  }
+.input{
+  display:flex;
+  padding:0 16px 16px;
+  gap:10px;
+}
 
-  .clock-block {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 5px;
-    flex-shrink: 0;
-    width: fit-content;
-  }
-  .clock-time {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.92rem;
-    font-weight: 500;
-    color: var(--text);
-    letter-spacing: -0.5px;
-    line-height: 1;
-  }
-  .seconds-bar-track {
-    width: 100%;
-    height: 1px;
-    background: var(--border);
-    border-radius: 99px;
-    overflow: hidden;
-  }
-  .seconds-bar-fill {
-    height: 100%;
-    width: 0%;
-    background: var(--text-3);
-    border-radius: 99px;
-    transition: width 0.95s linear;
-  }
+input{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:var(--card);
+  color:var(--text);
+}
 
-  .sound-btn {
-    background: none;
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 0.82rem;
-    color: var(--text-3);
-    transition: all 0.15s;
-    margin-top: 2px;
-    flex-shrink: 0;
-  }
-  .sound-btn:hover { border-color: var(--text-2); color: var(--text-2); }
-  .sound-btn.muted { opacity: 0.4; }
+button{
+  border:none;
+  border-radius:12px;
+  padding:14px;
+  background:var(--accent);
+  color:black;
+}
 
-  .input-wrap {
-    position: relative;
-    margin-bottom: 0.7rem;
-  }
-  .input-wrap input[type="text"] {
-    width: 100%;
-    padding: 13px 52px 13px 16px;
-    border-radius: var(--radius);
-    border: 1.5px solid var(--border);
-    background: #fff;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.95rem;
-    color: var(--text);
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .input-wrap input[type="text"]:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(26,32,40,0.08);
-  }
-  .input-wrap input[type="text"]::placeholder { color: var(--text-3); }
+.list{
+  flex:1;
+  overflow:auto;
+}
 
-  .add-btn {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 34px;
-    height: 34px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    font-size: 1.25rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.15s, transform 0.15s;
-  }
-  .add-btn:hover { opacity: 0.75; }
-  .add-btn:active { transform: translateY(-50%) scale(0.9); }
+.task{
+  background:var(--card);
+  margin:8px 16px;
+  padding:14px;
+  border-radius:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  transition:transform .2s, opacity .2s;
+}
 
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin-bottom: 1.5rem;
-  }
-  .priority-btn {
-    padding: 5px 13px;
-    border-radius: 99px;
-    border: 1.5px solid var(--border);
-    background: transparent;
-    color: var(--text-3);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.74rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .priority-btn.active-low  { border-color: var(--low);  color: var(--low);  background: #d8f3dc55; }
-  .priority-btn.active-mid  { border-color: var(--mid);  color: var(--mid);  background: #fef3c755; }
-  .priority-btn.active-high { border-color: var(--high); color: var(--high); background: #fee2e255; }
+.task.done{
+  opacity:.4;
+}
 
-  .time-pill {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .time-pill label {
-    font-size: 0.7rem;
-    color: var(--text-3);
-    font-family: 'IBM Plex Mono', monospace;
-  }
-  input[type="time"] {
-    border: 1.5px solid var(--border);
-    background: transparent;
-    border-radius: 8px;
-    padding: 4px 8px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-2);
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  input[type="time"]:focus { border-color: var(--accent); }
+.task span{
+  flex:1;
+}
 
-  .kbd-strip { display: none; }
+.actions{
+  display:flex;
+  gap:8px;
+}
 
-  .divider { height: 1px; background: var(--border); margin-bottom: 0.5rem; }
+.small{
+  background:#1f2937;
+  color:white;
+  padding:6px 10px;
+  font-size:12px;
+}
 
-  .filters { display: flex; gap: 0; margin-bottom: 0.25rem; }
-  .filter-btn {
-    flex: 1;
-    padding: 8px 0;
-    border: none;
-    border-bottom: 2px solid transparent;
-    background: transparent;
-    color: var(--text-3);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: color 0.15s, border-color 0.15s;
-  }
-  .filter-btn:hover { color: var(--text-2); }
-  .filter-btn.active {
-    color: var(--text);
-    font-weight: 700;
-    border-bottom-color: var(--text);
-  }
-
-  ul {
-    list-style: none;
-    max-height: calc(100vh - 480px);
-    min-height: 60px;
-    overflow-y: auto;
-    margin-top: 0.25rem;
-  }
-  ul::-webkit-scrollbar { width: 0; }
-
-  li {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    padding: 13px 0;
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-    animation: fadeUp 0.2s ease both;
-    transition: opacity 0.22s ease, transform 0.22s ease;
-  }
-  li:last-child { border-bottom: none; }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(4px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  li.completing {
-    opacity: 0 !important;
-    transform: translateX(8px) !important;
-  }
-
-  li.done { opacity: 0.45; }
-  li.done .task-text { text-decoration: line-through; color: var(--text-3); }
-  li[data-p="low"].done .check-circle  { background: var(--done-green); border-color: var(--done-green); }
-  li[data-p="mid"].done .check-circle  { background: var(--mid);        border-color: var(--mid);        }
-  li[data-p="high"].done .check-circle { background: var(--high);       border-color: var(--high);       }
-  li.done .check-circle::after {
-    opacity: 1;
-    transform: translate(-50%, -62%) rotate(45deg) scale(1);
-  }
-
-  .check-circle {
-    width: 19px;
-    height: 19px;
-    border-radius: 50%;
-    border: 1.5px solid var(--border);
-    flex-shrink: 0;
-    position: relative;
-    transition: background 0.2s, border-color 0.2s;
-  }
-  .check-circle::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 4px;
-    height: 8px;
-    border-right: 2px solid #fff;
-    border-bottom: 2px solid #fff;
-    transform: translate(-50%, -62%) rotate(45deg) scale(0);
-    opacity: 0;
-    transition: opacity 0.18s cubic-bezier(.34,1.56,.64,1),
-                transform 0.18s cubic-bezier(.34,1.56,.64,1);
-  }
-
-  .p-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-  .p-dot.high { background: var(--high); }
-  .p-dot.mid  { background: var(--mid);  }
-  .p-dot.low  { background: var(--low);  }
-
-  .task-text {
-    flex: 1;
-    font-size: 0.91rem;
-    font-weight: 500;
-    word-break: break-word;
-    line-height: 1.4;
-    color: var(--text);
-    transition: color 0.2s;
-  }
-
-  .task-time {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.66rem;
-    color: var(--text-3);
-    flex-shrink: 0;
-  }
-
-  .delete-btn {
-    background: transparent;
-    color: var(--text-3);
-    border: none;
-    width: 22px;
-    height: 22px;
-    font-size: 0.72rem;
-    cursor: pointer;
-    flex-shrink: 0;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.15s, background 0.15s, color 0.15s;
-  }
-  li:hover .delete-btn { opacity: 1; }
-  .delete-btn:hover { background: #fee2e2; color: var(--high); }
-
-  .empty-state {
-    padding: 2.5rem 0 1.5rem;
-    color: var(--text-3);
-    font-size: 0.82rem;
-    text-align: center;
-  }
-
-  .footer-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 1rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--border);
-  }
-  .task-counter {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-3);
-  }
-  .footer-actions { display: flex; gap: 5px; }
-  .ghost-btn {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--text-2);
-    padding: 5px 11px;
-    border-radius: var(--radius-sm);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .ghost-btn:hover { background: var(--surface-2); }
-  .ghost-btn.active { background: var(--text); color: #f7f5f1; border-color: var(--text); }
-  .ghost-btn.danger:hover { background: #fee2e2; border-color: var(--high); color: var(--high); }
-  #clear-btn { display: none; }
-  #clear-btn.visible { display: block; }
-
-  .toast {
-    position: fixed;
-    bottom: 1.5rem;
-    left: 50%;
-    transform: translateX(-50%) translateY(70px);
-    background: var(--text);
-    color: #f7f5f1;
-    padding: 10px 16px;
-    border-radius: var(--radius);
-    font-size: 0.82rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 8px 28px rgba(0,0,0,0.18);
-    transition: transform 0.28s cubic-bezier(.34,1.56,.64,1);
-    z-index: 999;
-    white-space: nowrap;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-  .toast-undo {
-    background: none;
-    border: 1px solid rgba(255,255,255,0.25);
-    color: #fff;
-    padding: 3px 10px;
-    border-radius: 6px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .toast-undo:hover { background: rgba(255,255,255,0.1); }
-
-  .confetti-ring {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 998;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.4s;
-  }
-  .confetti-ring.show { opacity: 1; }
-  .confetti-ring svg { width: 320px; height: 320px; }
-
-  .rainbow-river {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 5;
-    opacity: 0;
-    overflow: hidden;
-  }
-  .rainbow-river.show { animation: riverFade 3s ease forwards; }
-  @keyframes riverFade {
-    0%   { opacity: 0; }
-    8%   { opacity: 1; }
-    80%  { opacity: 1; }
-    100% { opacity: 0; }
-  }
-
-  /* ── Illustrated characters ──────────────────────────────────────────────── */
-  .celebration-character {
-    position: fixed;
-    pointer-events: none;
-    z-index: 10000;
-    opacity: 0;
-    transform: translateY(30px) scale(0.7);
-    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.18));
-    animation: charRise 3s cubic-bezier(.34,1.56,.64,1) forwards;
-  }
-  @keyframes charRise {
-    0%   { opacity: 0;    transform: translateY(40px) scale(0.65) rotate(-4deg); }
-    12%  { opacity: 1;    transform: translateY(-8px) scale(1.05) rotate(2deg);  }
-    22%  { opacity: 1;    transform: translateY(0px)  scale(1)    rotate(0deg);  }
-    75%  { opacity: 1;    transform: translateY(-6px) scale(1)    rotate(-1deg); }
-    100% { opacity: 0;    transform: translateY(-30px) scale(0.9) rotate(3deg);  }
-  }
-  /* Each character gets a slight wobble offset */
-  .celebration-character:nth-child(1) { animation-delay: 0.00s; }
-  .celebration-character:nth-child(2) { animation-delay: 0.12s; }
-  .celebration-character:nth-child(3) { animation-delay: 0.22s; }
-  .celebration-character:nth-child(4) { animation-delay: 0.32s; }
 </style>
 </head>
 <body>
-<div class="container">
 
-  <div class="header">
-    <div class="header-left">
-      <h1>My Day</h1>
-      <div class="date" id="date-display"></div>
-    </div>
-    <div style="display:flex;align-items:flex-start;gap:8px;">
-      <button class="sound-btn" id="sound-btn" onclick="toggleSound()" title="Toggle sound">🔊</button>
-      <div class="clock-block">
-        <div class="clock-time" id="clock-time"></div>
-        <div class="seconds-bar-track">
-          <div class="seconds-bar-fill" id="seconds-bar"></div>
-        </div>
-      </div>
-    </div>
+<div class="app">
+  <div class="header">My Day</div>
+
+  <div class="input">
+    <input id="taskInput" placeholder="Add task" />
+    <button onclick="handleAdd()">+</button>
   </div>
 
-  <div class="input-wrap">
-    <input type="text" id="task-input" placeholder="Add a task..." maxlength="80" autocomplete="off">
-    <button class="add-btn" onclick="addTask()" title="Add (Enter)">+</button>
-  </div>
-
-  <div class="toolbar">
-    <button class="priority-btn active-low" data-p="low"  onclick="selectPriority('low')">Low</button>
-    <button class="priority-btn"            data-p="mid"  onclick="selectPriority('mid')">Mid</button>
-    <button class="priority-btn"            data-p="high" onclick="selectPriority('high')">High</button>
-    <div class="time-pill">
-      <label for="time-input">at</label>
-      <input type="time" id="time-input">
-    </div>
-  </div>
-
-  <div class="kbd-strip">
-    <kbd>Enter</kbd> add &nbsp;·&nbsp; <kbd>Alt 1/2/3</kbd> priority
-  </div>
-
-  <div class="divider"></div>
-
-  <div class="filters">
-    <button class="filter-btn active" data-f="all"    onclick="setFilter('all')">All <span id="cnt-all"></span></button>
-    <button class="filter-btn"        data-f="active" onclick="setFilter('active')">Active <span id="cnt-active"></span></button>
-    <button class="filter-btn"        data-f="done"   onclick="setFilter('done')">Done <span id="cnt-done"></span></button>
-  </div>
-
-  <ul id="task-list"></ul>
-
-  <div class="footer-row">
-    <span class="task-counter" id="task-counter"></span>
-    <div class="footer-actions">
-      <button class="ghost-btn danger" id="clear-btn" onclick="clearDone()">Clear done</button>
-      <button class="ghost-btn" id="sort-btn" onclick="toggleSort()">Sort</button>
-    </div>
-  </div>
-
-</div>
-
-<div class="toast" id="toast">
-  Task removed
-  <button class="toast-undo" onclick="undoDelete()">Undo</button>
-</div>
-
-<div class="confetti-ring" id="confetti-ring">
-  <svg viewBox="0 0 100 100" id="confetti-svg"></svg>
-</div>
-<div class="rainbow-river" id="rainbow-river">
-  <canvas id="rainbow-canvas"></canvas>
+  <div class="list" id="list"></div>
 </div>
 
 <script>
-  // ─── Audio Engine ──────────────────────────────────────────────────────────
-  let audioCtx = null;
-  let soundEnabled = localStorage.getItem('myDay_sound') !== 'false';
 
-  function getCtx() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    return audioCtx;
+// ===== STATE =====
+let tasks = load();
+let activeSwipe = null;
+
+function load(){
+  try{return JSON.parse(localStorage.getItem('tasks_mobile'))||[]}
+  catch{return[]}
+}
+
+function save(){
+  localStorage.setItem('tasks_mobile',JSON.stringify(tasks))
+}
+
+// ===== LOGIC =====
+function createTask(text){
+  return{
+    id:crypto.randomUUID(),
+    text,
+    done:false,
+    createdAt:Date.now(),
+    completedAt:null
   }
+}
 
-  function toggleSound() {
-    soundEnabled = !soundEnabled;
-    localStorage.setItem('myDay_sound', soundEnabled);
-    const btn = document.getElementById('sound-btn');
-    btn.textContent = soundEnabled ? '🔊' : '🔇';
-    btn.classList.toggle('muted', !soundEnabled);
-    if (soundEnabled) playPop();
-  }
+function addTask(text){
+  tasks.unshift(createTask(text))
+  save(); render()
+}
 
-  document.getElementById('sound-btn').textContent = soundEnabled ? '🔊' : '🔇';
-  document.getElementById('sound-btn').classList.toggle('muted', !soundEnabled);
+function toggleTask(id){
+  const t=tasks.find(t=>t.id===id)
+  if(!t)return
+  t.done=!t.done
+  t.completedAt=t.done?Date.now():null
+  save(); render()
+}
 
-  function envelope(gainNode, ctx, { attack = 0.005, sustain = 0.12, release = 0.18, peak = 0.35 } = {}) {
-    const t = ctx.currentTime;
-    gainNode.gain.setValueAtTime(0, t);
-    gainNode.gain.linearRampToValueAtTime(peak, t + attack);
-    gainNode.gain.setValueAtTime(peak, t + attack + sustain);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, t + attack + sustain + release);
-  }
+function deleteTask(id){
+  tasks=tasks.filter(t=>t.id!==id)
+  save(); render()
+}
 
-  function playPop() {
-    if (!soundEnabled) return;
-    const ctx = getCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(600, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.06);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    envelope(gain, ctx, { attack: 0.003, sustain: 0.01, release: 0.06, peak: 0.22 });
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.1);
-  }
+// ===== SWIPE =====
+function attachSwipe(el, task){
+  let startX=0
 
-  function playDing(isDone) {
-    if (!soundEnabled) return;
-    const ctx = getCtx();
-    const freqs = isDone ? [880, 1320] : [660, 990];
-    freqs.forEach((freq, i) => {
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, ctx.currentTime);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      const delay = i * 0.04;
-      const t = ctx.currentTime + delay;
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(0.28 - i * 0.08, t + 0.006);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
-      osc.start(t);
-      osc.stop(t + 0.65);
-    });
-  }
+  el.addEventListener('touchstart',e=>{
+    startX=e.touches[0].clientX
+  })
 
-  function playWhoosh() {
-    if (!soundEnabled) return;
-    const ctx = getCtx();
-    const bufSize = ctx.sampleRate * 0.25;
-    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-    const noise = ctx.createBufferSource();
-    noise.buffer = buf;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(1800, ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.22);
-    filter.Q.value = 1.2;
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.18, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    noise.start(ctx.currentTime);
-  }
-
-  function playUndo() {
-    if (!soundEnabled) return;
-    const ctx = getCtx();
-    const bufSize = ctx.sampleRate * 0.22;
-    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-    const noise = ctx.createBufferSource();
-    noise.buffer = buf;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(200, ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(1600, ctx.currentTime + 0.2);
-    filter.Q.value = 1.2;
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.16, ctx.currentTime + 0.1);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    noise.start(ctx.currentTime);
-  }
-
-  const priorityFreqs = { low: 330, mid: 494, high: 659 };
-
-  function playPriorityTone(p) {
-    if (!soundEnabled) return;
-    const ctx  = getCtx();
-    const freq = priorityFreqs[p];
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    envelope(gain, ctx, { attack: 0.004, sustain: 0.04, release: 0.1, peak: 0.18 });
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.18);
-  }
-
-  function playAllDone() {
-    if (!soundEnabled) return;
-    const ctx  = getCtx();
-    const notes = [523, 659, 784, 988, 1047];
-    notes.forEach((freq, i) => {
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, ctx.currentTime);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      const t = ctx.currentTime + i * 0.1;
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(0.22, t + 0.008);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
-      osc.start(t);
-      osc.stop(t + 0.55);
-    });
-  }
-
-  function playVictoryFanfare() {
-    if (!soundEnabled) return;
-    const ctx = getCtx();
-    const harpNotes = [
-      { freq: 523.25, t: 0.00 },
-      { freq: 659.25, t: 0.18 },
-      { freq: 783.99, t: 0.36 },
-      { freq: 1046.5, t: 0.54 },
-      { freq: 1174.7, t: 0.72 },
-      { freq: 1318.5, t: 0.90 },
-      { freq: 1567.9, t: 1.10 },
-      { freq: 2093.0, t: 1.32 },
-    ];
-    harpNotes.forEach(({ freq, t: delay }) => {
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, ctx.currentTime);
-      const t = ctx.currentTime + delay;
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(0.20, t + 0.012);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + 1.65);
-    });
-  }
-
-  // ─── Illustrated Characters ────────────────────────────────────────────────
-
-  const CHARACTERS = [
-    {
-      // Pink Flamingo
-      pos: { left: '4vw', bottom: '8vh' },
-      size: 160,
-      svg: `<svg viewBox="0 0 160 220" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="80" cy="110" rx="38" ry="46" fill="#F06292"/>
-        <path d="M80 68 Q60 40 68 14" stroke="#F48FB1" stroke-width="16" stroke-linecap="round" fill="none"/>
-        <ellipse cx="70" cy="11" rx="16" ry="13" fill="#F48FB1"/>
-        <path d="M58 9 Q46 12 44 18 Q50 16 62 14 Z" fill="#1565C0"/>
-        <ellipse cx="44" cy="18" rx="4" ry="3" fill="#0D2137"/>
-        <circle cx="66" cy="7" r="4" fill="#fff"/>
-        <circle cx="67" cy="7" r="2.2" fill="#1A2028"/>
-        <circle cx="68" cy="6" r="0.8" fill="#fff"/>
-        <ellipse cx="105" cy="102" rx="22" ry="34" fill="#EC407A" transform="rotate(18,105,102)"/>
-        <ellipse cx="105" cy="102" rx="13" ry="22" fill="#F48FB1" transform="rotate(18,105,102)"/>
-        <line x1="70" y1="152" x2="62" y2="200" stroke="#F48FB1" stroke-width="7" stroke-linecap="round"/>
-        <line x1="90" y1="152" x2="98" y2="200" stroke="#F48FB1" stroke-width="7" stroke-linecap="round"/>
-        <circle cx="65" cy="178" r="5" fill="#EC407A"/>
-        <circle cx="95" cy="178" r="5" fill="#EC407A"/>
-        <path d="M62 200 Q54 206 48 202 Q56 198 62 200Z" fill="#F48FB1"/>
-        <path d="M62 200 Q60 210 54 212 Q58 204 62 200Z" fill="#F48FB1"/>
-        <path d="M62 200 Q68 210 72 208 Q66 204 62 200Z" fill="#F48FB1"/>
-        <path d="M98 200 Q106 206 112 202 Q104 198 98 200Z" fill="#F48FB1"/>
-        <path d="M98 200 Q96 210 90 212 Q94 204 98 200Z" fill="#F48FB1"/>
-        <path d="M98 200 Q104 210 108 208 Q102 204 98 200Z" fill="#F48FB1"/>
-        <ellipse cx="72" cy="100" rx="14" ry="18" fill="#F48FB1" opacity="0.45"/>
-      </svg>`
-    },
-    {
-      // Gujarat Elephant
-      pos: { left: '28vw', bottom: '5vh' },
-      size: 190,
-      svg: `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="105" cy="138" rx="72" ry="62" fill="#6D4C41"/>
-        <circle cx="68" cy="80" r="50" fill="#795548"/>
-        <ellipse cx="62" cy="58" rx="28" ry="22" fill="#8D6E63" opacity="0.5"/>
-        <ellipse cx="22" cy="82" rx="22" ry="34" fill="#A1887F"/>
-        <ellipse cx="22" cy="82" rx="13" ry="22" fill="#FFCC80" opacity="0.7"/>
-        <circle cx="22" cy="72" r="5" fill="#FF7043" opacity="0.8"/>
-        <circle cx="17" cy="84" r="4" fill="#42A5F5" opacity="0.8"/>
-        <circle cx="27" cy="88" r="4" fill="#66BB6A" opacity="0.8"/>
-        <path d="M44 116 Q28 144 34 168 Q38 178 44 174 Q46 160 44 148 Q50 136 56 128Z" fill="#6D4C41"/>
-        <path d="M34 168 Q24 178 30 184 Q38 180 44 174Z" fill="#795548"/>
-        <path d="M50 118 Q34 128 28 138 Q36 134 50 122Z" fill="#FFF9C4"/>
-        <circle cx="52" cy="74" r="8" fill="#fff"/>
-        <circle cx="53" cy="74" r="5" fill="#1A2028"/>
-        <circle cx="55" cy="72" r="1.8" fill="#fff"/>
-        <path d="M46 68 Q50 64 56 66" stroke="#1A2028" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-        <rect x="48"  y="188" width="28" height="32" rx="10" fill="#6D4C41"/>
-        <rect x="126" y="188" width="28" height="32" rx="10" fill="#6D4C41"/>
-        <rect x="74"  y="190" width="26" height="30" rx="10" fill="#795548"/>
-        <rect x="102" y="190" width="26" height="30" rx="10" fill="#795548"/>
-        <ellipse cx="62"  cy="220" rx="10" ry="4" fill="#4E342E"/>
-        <ellipse cx="140" cy="220" rx="10" ry="4" fill="#4E342E"/>
-        <path d="M50 130 Q105 112 162 130 L158 158 Q105 144 50 158Z" fill="#E53935"/>
-        <ellipse cx="105" cy="143" rx="20" ry="8" fill="#FFD54F" opacity="0.9"/>
-        <circle cx="105" cy="143" r="5" fill="#E53935"/>
-        <circle cx="84"  cy="143" r="4" fill="#FFD54F" opacity="0.7"/>
-        <circle cx="126" cy="143" r="4" fill="#FFD54F" opacity="0.7"/>
-        <line x1="56"  y1="158" x2="52"  y2="168" stroke="#FFD54F" stroke-width="2"/>
-        <line x1="70"  y1="160" x2="68"  y2="170" stroke="#FFD54F" stroke-width="2"/>
-        <line x1="84"  y1="161" x2="83"  y2="171" stroke="#FFD54F" stroke-width="2"/>
-        <line x1="98"  y1="162" x2="97"  y2="172" stroke="#FFD54F" stroke-width="2"/>
-        <line x1="112" y1="161" x2="112" y2="171" stroke="#FFD54F" stroke-width="2"/>
-        <line x1="126" y1="160" x2="127" y2="170" stroke="#FFD54F" stroke-width="2"/>
-        <line x1="140" y1="158" x2="142" y2="168" stroke="#FFD54F" stroke-width="2"/>
-        <line x1="154" y1="155" x2="158" y2="165" stroke="#FFD54F" stroke-width="2"/>
-        <circle cx="68" cy="52" r="7" fill="#FFD54F"/>
-        <circle cx="68" cy="52" r="4" fill="#E53935"/>
-        <path d="M44 62 Q56 52 68 52 Q80 52 90 62" stroke="#FFD54F" stroke-width="2" fill="none"/>
-        <path d="M174 148 Q190 152 192 164 Q186 158 178 162" stroke="#6D4C41" stroke-width="6" stroke-linecap="round" fill="none"/>
-      </svg>`
-    },
-    {
-      // Red Hibiscus
-      pos: { right: '26vw', bottom: '6vh' },
-      size: 165,
-      svg: `<svg viewBox="0 0 180 200" xmlns="http://www.w3.org/2000/svg">
-        <path d="M90 200 Q82 170 90 148" stroke="#2E7D32" stroke-width="8" stroke-linecap="round" fill="none"/>
-        <path d="M82 175 Q56 164 52 148 Q70 152 82 175Z" fill="#388E3C"/>
-        <path d="M82 175 Q66 162 68 148" stroke="#2E7D32" stroke-width="1.5" fill="none"/>
-        <path d="M94 168 Q118 158 122 142 Q104 146 94 168Z" fill="#43A047"/>
-        <path d="M94 168 Q110 155 110 142" stroke="#2E7D32" stroke-width="1.5" fill="none"/>
-        <path d="M90 80 Q70 40 90 20 Q110 40 90 80Z" fill="#C62828"/>
-        <path d="M90 80 Q86 50 90 20" stroke="#B71C1C" stroke-width="1.5" fill="none" opacity="0.6"/>
-        <path d="M90 80 Q135 60 152 38 Q128 68 90 80Z" fill="#D32F2F"/>
-        <path d="M90 80 Q122 66 152 38" stroke="#B71C1C" stroke-width="1.5" fill="none" opacity="0.6"/>
-        <path d="M90 80 Q148 100 158 130 Q122 110 90 80Z" fill="#C62828"/>
-        <path d="M90 80 Q128 106 158 130" stroke="#B71C1C" stroke-width="1.5" fill="none" opacity="0.6"/>
-        <path d="M90 80 Q32 100 22 130 Q58 110 90 80Z" fill="#D32F2F"/>
-        <path d="M90 80 Q52 106 22 130" stroke="#B71C1C" stroke-width="1.5" fill="none" opacity="0.6"/>
-        <path d="M90 80 Q45 60 28 38 Q62 68 90 80Z" fill="#C62828"/>
-        <path d="M90 80 Q58 66 28 38" stroke="#B71C1C" stroke-width="1.5" fill="none" opacity="0.6"/>
-        <path d="M90 80 Q80 120 70 140" stroke="#FFCA28" stroke-width="6" stroke-linecap="round" fill="none"/>
-        <circle cx="70" cy="140" r="6" fill="#FF8F00"/>
-        <circle cx="78" cy="120" r="3" fill="#FF8F00"/>
-        <circle cx="73" cy="110" r="3" fill="#FF8F00"/>
-        <circle cx="82" cy="100" r="3" fill="#FF8F00"/>
-      </svg>`
-    },
-    {
-      // Little Sun
-      pos: { right: '8vw', top: '12vh' },
-      size: 130,
-      svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="50" cy="50" r="24" fill="#FFCA28"/>
-        <path d="M50 15 L50 5" stroke="#FFCA28" stroke-width="6" stroke-linecap="round"/>
-        <path d="M50 85 L50 95" stroke="#FFCA28" stroke-width="6" stroke-linecap="round"/>
-        <path d="M15 50 L5 50" stroke="#FFCA28" stroke-width="6" stroke-linecap="round"/>
-        <path d="M85 50 L95 50" stroke="#FFCA28" stroke-width="6" stroke-linecap="round"/>
-        <path d="M25 25 L18 18" stroke="#FFCA28" stroke-width="6" stroke-linecap="round"/>
-        <path d="M75 75 L82 82" stroke="#FFCA28" stroke-width="6" stroke-linecap="round"/>
-        <path d="M25 75 L18 82" stroke="#FFCA28" stroke-width="6" stroke-linecap="round"/>
-        <path d="M75 25 L82 18" stroke="#FFCA28" stroke-width="6" stroke-linecap="round"/>
-        <circle cx="42" cy="45" r="3" fill="#1A2028"/>
-        <circle cx="58" cy="45" r="3" fill="#1A2028"/>
-        <path d="M44 55 Q50 62 56 55" stroke="#1A2028" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-      </svg>`
+  el.addEventListener('touchmove',e=>{
+    const dx=e.touches[0].clientX-startX
+    if(dx<0){
+      el.style.transform=`translateX(${dx}px)`
     }
-  ];
+  })
 
-  // ─── App Logic ─────────────────────────────────────────────────────────────
-  
-  let tasks = JSON.parse(localStorage.getItem('myDay_tasks')) || [];
-  let filter = 'all';
-  let sortActive = false;
-  let currentPriority = 'low';
-  let deletedCache = null;
-  let toastTimer = null;
+  el.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-startX
 
-  function updateClock() {
-    const now = new Date();
-    document.getElementById('clock-time').textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    document.getElementById('date-display').textContent = now.toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
-    const secs = now.getSeconds() + now.getMilliseconds()/1000;
-    document.getElementById('seconds-bar').style.width = (secs / 60) * 100 + '%';
-    requestAnimationFrame(updateClock);
-  }
-  updateClock();
-
-  function save() {
-    localStorage.setItem('myDay_tasks', JSON.stringify(tasks));
-  }
-
-  function selectPriority(p) {
-    currentPriority = p;
-    document.querySelectorAll('.priority-btn').forEach(btn => {
-      btn.className = `priority-btn`;
-      if(btn.dataset.p === p) btn.classList.add(`active-${p}`);
-    });
-    playPriorityTone(p);
-  }
-
-  function setFilter(f) {
-    filter = f;
-    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`.filter-btn[data-f="${f}"]`).classList.add('active');
-    playPop();
-    render();
-  }
-
-  function toggleSort() {
-    sortActive = !sortActive;
-    document.getElementById('sort-btn').classList.toggle('active', sortActive);
-    playPop();
-    render();
-  }
-
-  function addTask() {
-    const input = document.getElementById('task-input');
-    const timeInput = document.getElementById('time-input');
-    const text = input.value.trim();
-    if (!text) return;
-    
-    tasks.push({
-      id: Date.now(),
-      text,
-      priority: currentPriority,
-      time: timeInput.value,
-      done: false
-    });
-    
-    input.value = '';
-    timeInput.value = '';
-    playPop();
-    save();
-    render();
-  }
-
-  document.getElementById('task-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addTask();
-  });
-
-  document.addEventListener('keydown', e => {
-    if (e.altKey && e.key === '1') { selectPriority('low'); e.preventDefault(); }
-    if (e.altKey && e.key === '2') { selectPriority('mid'); e.preventDefault(); }
-    if (e.altKey && e.key === '3') { selectPriority('high'); e.preventDefault(); }
-  });
-
-  function toggleTask(id, liElement) {
-    const task = tasks.find(t => t.id === id);
-    if (!task) return;
-    task.done = !task.done;
-    
-    if (task.done) {
-      liElement.classList.add('done');
-      playDing(true);
-      checkCelebration();
-    } else {
-      liElement.classList.remove('done');
-      playDing(false);
+    if(dx<-100){
+      deleteTask(task.id)
+    }else{
+      el.style.transform=''
     }
-    
-    save();
-    setTimeout(() => render(), 250); 
-  }
+  })
+}
 
-  function deleteTask(id, liElement) {
-    liElement.classList.add('completing');
-    const index = tasks.findIndex(t => t.id === id);
-    deletedCache = { index, task: tasks[index] };
-    
-    setTimeout(() => {
-      tasks.splice(index, 1);
-      save();
-      render();
-      showToast('Task removed');
-      playWhoosh();
-    }, 220);
-  }
+// ===== UI =====
+function render(){
+  const list=document.getElementById('list')
+  list.innerHTML=''
 
-  function clearDone() {
-    const doneTasks = tasks.filter(t => t.done);
-    if(doneTasks.length === 0) return;
-    tasks = tasks.filter(t => !t.done);
-    save();
-    render();
-    playWhoosh();
-  }
+  tasks.forEach(task=>{
+    const div=document.createElement('div')
+    div.className='task'+(task.done?' done':'')
 
-  function undoDelete() {
-    if (deletedCache) {
-      tasks.splice(deletedCache.index, 0, deletedCache.task);
-      deletedCache = null;
-      hideToast();
-      save();
-      render();
-      playUndo();
-    }
-  }
+    const span=document.createElement('span')
+    span.textContent=task.text
+    span.onclick=()=>toggleTask(task.id)
 
-  function showToast(msg) {
-    const toast = document.getElementById('toast');
-    toast.firstChild.textContent = msg + " ";
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(hideToast, 4000);
-  }
+    const actions=document.createElement('div')
+    actions.className='actions'
 
-  function hideToast() {
-    document.getElementById('toast').classList.remove('show');
-  }
-
-  function checkCelebration() {
-    const activeTasks = tasks.filter(t => !t.done);
-    const hasDoneTasks = tasks.some(t => t.done);
-    
-    if (activeTasks.length === 0 && hasDoneTasks) {
-      playAllDone();
-      setTimeout(playVictoryFanfare, 600);
-      triggerConfetti();
-      triggerRainbowRiver();
-      triggerCharacters();
-    }
-  }
-
-  function triggerConfetti() {
-    const ring = document.getElementById('confetti-ring');
-    const svg = document.getElementById('confetti-svg');
-    svg.innerHTML = '';
-    
-    for(let i=0; i<30; i++) {
-      const angle = (i / 30) * Math.PI * 2;
-      const dist = 30 + Math.random() * 20;
-      const cx = 50 + Math.cos(angle) * dist;
-      const cy = 50 + Math.sin(angle) * dist;
-      const r = 1 + Math.random() * 2;
-      const colors = ['#F48FB1', '#FFD54F', '#42A5F5', '#66BB6A', '#E53935'];
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      
-      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('cx', '50');
-      circle.setAttribute('cy', '50');
-      circle.setAttribute('r', r);
-      circle.setAttribute('fill', color);
-      
-      const animX = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
-      animX.setAttribute('attributeName', 'cx');
-      animX.setAttribute('values', `50;${cx}`);
-      animX.setAttribute('dur', '0.6s');
-      animX.setAttribute('fill', 'freeze');
-      animX.setAttribute('calcMode', 'spline');
-      animX.setAttribute('keySplines', '0.25 0.1 0.25 1');
-      
-      const animY = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
-      animY.setAttribute('attributeName', 'cy');
-      animY.setAttribute('values', `50;${cy}`);
-      animY.setAttribute('dur', '0.6s');
-      animY.setAttribute('fill', 'freeze');
-      animY.setAttribute('calcMode', 'spline');
-      animY.setAttribute('keySplines', '0.25 0.1 0.25 1');
-
-      const animOp = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
-      animOp.setAttribute('attributeName', 'opacity');
-      animOp.setAttribute('values', `1;0`);
-      animOp.setAttribute('dur', '1.2s');
-      animOp.setAttribute('fill', 'freeze');
-
-      circle.appendChild(animX);
-      circle.appendChild(animY);
-      circle.appendChild(animOp);
-      svg.appendChild(circle);
-    }
-    
-    ring.classList.add('show');
-    setTimeout(() => ring.classList.remove('show'), 1500);
-  }
-
-  function triggerRainbowRiver() {
-    const river = document.getElementById('rainbow-river');
-    const cvs = document.getElementById('rainbow-canvas');
-    const ctx = cvs.getContext('2d');
-    
-    cvs.width = window.innerWidth;
-    cvs.height = window.innerHeight;
-    
-    let startY = cvs.height + 100;
-    let time = 0;
-    
-    function draw() {
-      if(!river.classList.contains('show')) return;
-      ctx.clearRect(0,0, cvs.width, cvs.height);
-      time += 0.02;
-      
-      const colors = ['#FF5252', '#FF4081', '#E040FB', '#7C4DFF', '#536DFE', '#448AFF', '#40C4FF', '#18FFFF', '#64FFDA', '#69F0AE', '#B2FF59', '#EEFF41', '#FFFF00', '#FFD740', '#FFAB40'];
-      const stripHeight = cvs.height / colors.length;
-      
-      for(let i=0; i<colors.length; i++) {
-        ctx.fillStyle = colors[i];
-        ctx.beginPath();
-        for(let x=0; x<=cvs.width; x+=50) {
-          const y = Math.sin(x*0.005 + time + i*0.2) * 50 + startY - (i * 30);
-          if(x===0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.lineTo(cvs.width, cvs.height);
-        ctx.lineTo(0, cvs.height);
-        ctx.fill();
-      }
-      
-      startY -= 10;
-      if(startY > -500) requestAnimationFrame(draw);
-    }
-    
-    river.classList.add('show');
-    draw();
-    setTimeout(() => {
-      river.classList.remove('show');
-    }, 3000);
-  }
-
-  function triggerCharacters() {
-    CHARACTERS.forEach(char => {
-      const el = document.createElement('div');
-      el.className = 'celebration-character';
-      el.innerHTML = char.svg;
-      
-      Object.assign(el.style, char.pos);
-      el.style.width = char.size + 'px';
-      
-      document.body.appendChild(el);
-      setTimeout(() => el.remove(), 3500);
-    });
-  }
-
-  function render() {
-    const list = document.getElementById('task-list');
-    list.innerHTML = '';
-    
-    let filtered = tasks.filter(t => {
-      if (filter === 'active') return !t.done;
-      if (filter === 'done') return t.done;
-      return true;
-    });
-
-    if (sortActive) {
-      const pMap = { high: 3, mid: 2, low: 1 };
-      filtered.sort((a, b) => {
-        if(a.done !== b.done) return a.done ? 1 : -1;
-        return pMap[b.priority] - pMap[a.priority];
-      });
+    const edit=document.createElement('button')
+    edit.className='small'
+    edit.textContent='Edit'
+    edit.onclick=()=>{
+      const val=prompt('Edit',task.text)
+      if(val){task.text=val; save(); render()}
     }
 
-    if (filtered.length === 0) {
-      list.innerHTML = `<div class="empty-state">No ${filter !== 'all' ? filter : ''} tasks here.</div>`;
-    }
+    const del=document.createElement('button')
+    del.className='small'
+    del.textContent='Del'
+    del.onclick=()=>deleteTask(task.id)
 
-    filtered.forEach(task => {
-      const li = document.createElement('li');
-      li.className = task.done ? 'done' : '';
-      li.dataset.p = task.priority;
-      
-      const check = document.createElement('div');
-      check.className = 'check-circle';
-      check.onclick = (e) => { e.stopPropagation(); toggleTask(task.id, li); };
-      
-      const pDot = document.createElement('div');
-      pDot.className = `p-dot ${task.priority}`;
-      
-      const text = document.createElement('div');
-      text.className = 'task-text';
-      text.textContent = task.text;
-      
-      const time = document.createElement('div');
-      if (task.time) {
-        time.className = 'task-time';
-        time.textContent = task.time;
-      }
-      
-      const delBtn = document.createElement('button');
-      delBtn.className = 'delete-btn';
-      delBtn.innerHTML = '✕';
-      delBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id, li); };
-      
-      li.appendChild(check);
-      li.appendChild(pDot);
-      li.appendChild(text);
-      if(task.time) li.appendChild(time);
-      li.appendChild(delBtn);
-      
-      list.appendChild(li);
-    });
+    actions.appendChild(edit)
+    actions.appendChild(del)
 
-    // Update Counters
-    document.getElementById('cnt-all').textContent = tasks.length;
-    document.getElementById('cnt-active').textContent = tasks.filter(t => !t.done).length;
-    document.getElementById('cnt-done').textContent = tasks.filter(t => t.done).length;
-    
-    const doneCount = tasks.filter(t => t.done).length;
-    document.getElementById('task-counter').textContent = `${doneCount}/${tasks.length} done`;
-    document.getElementById('clear-btn').classList.toggle('visible', doneCount > 0);
-  }
+    div.appendChild(span)
+    div.appendChild(actions)
 
-  // Initial render
-  render();
+    attachSwipe(div,task)
+
+    list.appendChild(div)
+  })
+}
+
+function handleAdd(){
+  const input=document.getElementById('taskInput')
+  const val=input.value.trim()
+  if(!val)return
+  addTask(val)
+  input.value=''
+}
+
+// ===== INIT =====
+render()
 
 </script>
+
 </body>
 </html>
