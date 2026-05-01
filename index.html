@@ -47,7 +47,6 @@
     box-shadow: 0 4px 24px rgba(26,32,40,0.07);
   }
 
-  /* Header */
   .header {
     margin-bottom: 2rem;
     display: flex;
@@ -68,7 +67,6 @@
     font-family: 'IBM Plex Mono', monospace;
   }
 
-  /* Clock */
   .clock-block {
     display: flex;
     flex-direction: column;
@@ -100,7 +98,6 @@
     transition: width 0.95s linear;
   }
 
-  /* Sound toggle */
   .sound-btn {
     background: none;
     border: 1.5px solid var(--border);
@@ -120,7 +117,6 @@
   .sound-btn:hover { border-color: var(--text-2); color: var(--text-2); }
   .sound-btn.muted { opacity: 0.4; }
 
-  /* Input */
   .input-wrap {
     position: relative;
     margin-bottom: 0.7rem;
@@ -164,7 +160,6 @@
   .add-btn:hover { opacity: 0.75; }
   .add-btn:active { transform: translateY(-50%) scale(0.9); }
 
-  /* Toolbar */
   .toolbar {
     display: flex;
     align-items: center;
@@ -211,15 +206,10 @@
   }
   input[type="time"]:focus { border-color: var(--accent); }
 
-  /* kbd strip — hidden visually, shortcuts remain functional */
-  .kbd-strip {
-    display: none;
-  }
+  .kbd-strip { display: none; }
 
-  /* Divider */
   .divider { height: 1px; background: var(--border); margin-bottom: 0.5rem; }
 
-  /* Filters */
   .filters { display: flex; gap: 0; margin-bottom: 0.25rem; }
   .filter-btn {
     flex: 1;
@@ -241,7 +231,6 @@
     border-bottom-color: var(--text);
   }
 
-  /* Task list */
   ul {
     list-style: none;
     max-height: calc(100vh - 480px);
@@ -360,7 +349,6 @@
     text-align: center;
   }
 
-  /* Footer */
   .footer-row {
     display: flex;
     align-items: center;
@@ -393,7 +381,6 @@
   #clear-btn { display: none; }
   #clear-btn.visible { display: block; }
 
-  /* Toast */
   .toast {
     position: fixed;
     bottom: 1.5rem;
@@ -427,7 +414,6 @@
   }
   .toast-undo:hover { background: rgba(255,255,255,0.1); }
 
-  /* All-done celebration overlay */
   .confetti-ring {
     position: fixed;
     inset: 0;
@@ -442,7 +428,6 @@
   .confetti-ring.show { opacity: 1; }
   .confetti-ring svg { width: 320px; height: 320px; }
 
-  /* Rainbow cloud-river easter egg */
   .rainbow-river {
     position: fixed;
     inset: 0;
@@ -458,6 +443,29 @@
     80%  { opacity: 1; }
     100% { opacity: 0; }
   }
+
+  /* ── Illustrated characters ──────────────────────────────────────────────── */
+  .celebration-character {
+    position: fixed;
+    pointer-events: none;
+    z-index: 10000;
+    opacity: 0;
+    transform: translateY(30px) scale(0.7);
+    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.18));
+    animation: charRise 3s cubic-bezier(.34,1.56,.64,1) forwards;
+  }
+  @keyframes charRise {
+    0%   { opacity: 0;    transform: translateY(40px) scale(0.65) rotate(-4deg); }
+    12%  { opacity: 1;    transform: translateY(-8px) scale(1.05) rotate(2deg);  }
+    22%  { opacity: 1;    transform: translateY(0px)  scale(1)    rotate(0deg);  }
+    75%  { opacity: 1;    transform: translateY(-6px) scale(1)    rotate(-1deg); }
+    100% { opacity: 0;    transform: translateY(-30px) scale(0.9) rotate(3deg);  }
+  }
+  /* Each character gets a slight wobble offset */
+  .celebration-character:nth-child(1) { animation-delay: 0.00s; }
+  .celebration-character:nth-child(2) { animation-delay: 0.12s; }
+  .celebration-character:nth-child(3) { animation-delay: 0.22s; }
+  .celebration-character:nth-child(4) { animation-delay: 0.32s; }
 </style>
 </head>
 <body>
@@ -545,16 +553,12 @@
     const btn = document.getElementById('sound-btn');
     btn.textContent = soundEnabled ? '🔊' : '🔇';
     btn.classList.toggle('muted', !soundEnabled);
-    if (soundEnabled) playPop(); // little confirmation beep
+    if (soundEnabled) playPop();
   }
 
-  // Initialise button state on load
   document.getElementById('sound-btn').textContent = soundEnabled ? '🔊' : '🔇';
   document.getElementById('sound-btn').classList.toggle('muted', !soundEnabled);
 
-  /**
-   * Envelope helper: attack → sustain → release on a gain node.
-   */
   function envelope(gainNode, ctx, { attack = 0.005, sustain = 0.12, release = 0.18, peak = 0.35 } = {}) {
     const t = ctx.currentTime;
     gainNode.gain.setValueAtTime(0, t);
@@ -563,12 +567,9 @@
     gainNode.gain.exponentialRampToValueAtTime(0.0001, t + attack + sustain + release);
   }
 
-  // ── 1. Task added — soft "pop" (short noise burst + pitched click) ──────────
   function playPop() {
     if (!soundEnabled) return;
     const ctx = getCtx();
-
-    // Short pitched blip
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
@@ -579,8 +580,6 @@
     envelope(gain, ctx, { attack: 0.003, sustain: 0.01, release: 0.06, peak: 0.22 });
     osc.start(ctx.currentTime);
     osc.stop(ctx.currentTime + 0.1);
-
-    // Subtle noise click
     const bufSize = ctx.sampleRate * 0.04;
     const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
     const data = buf.getChannelData(0);
@@ -595,14 +594,10 @@
     noise.start(ctx.currentTime);
   }
 
-  // ── 2. Task complete — warm chime ding ──────────────────────────────────────
   function playDing(isDone) {
     if (!soundEnabled) return;
     const ctx = getCtx();
-
-    // Two-partial chime: fundamental + overtone
-    const freqs = isDone ? [880, 1320] : [660, 990]; // higher for done, lower for undone
-
+    const freqs = isDone ? [880, 1320] : [660, 990];
     freqs.forEach((freq, i) => {
       const osc  = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -620,73 +615,59 @@
     });
   }
 
-  // ── 3a. Delete — soft whoosh (filtered noise sweep down) ────────────────────
   function playWhoosh() {
     if (!soundEnabled) return;
     const ctx = getCtx();
-
     const bufSize = ctx.sampleRate * 0.25;
     const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
     const data = buf.getChannelData(0);
     for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-
     const noise = ctx.createBufferSource();
     noise.buffer = buf;
-
     const filter = ctx.createBiquadFilter();
     filter.type = 'bandpass';
     filter.frequency.setValueAtTime(1800, ctx.currentTime);
     filter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.22);
     filter.Q.value = 1.2;
-
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.18, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
-
     noise.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
     noise.start(ctx.currentTime);
   }
 
-  // ── 3b. Undo — reversed whoosh (noise sweep up) ─────────────────────────────
   function playUndo() {
     if (!soundEnabled) return;
     const ctx = getCtx();
-
     const bufSize = ctx.sampleRate * 0.22;
     const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
     const data = buf.getChannelData(0);
     for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-
     const noise = ctx.createBufferSource();
     noise.buffer = buf;
-
     const filter = ctx.createBiquadFilter();
     filter.type = 'bandpass';
     filter.frequency.setValueAtTime(200, ctx.currentTime);
     filter.frequency.exponentialRampToValueAtTime(1600, ctx.currentTime + 0.2);
     filter.Q.value = 1.2;
-
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.0001, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.16, ctx.currentTime + 0.1);
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
-
     noise.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
     noise.start(ctx.currentTime);
   }
 
-  // ── 4. Priority selection — three ascending tones ───────────────────────────
-  const priorityFreqs = { low: 330, mid: 494, high: 659 }; // E3, B4, E5 — a clean fifth each step
+  const priorityFreqs = { low: 330, mid: 494, high: 659 };
 
   function playPriorityTone(p) {
     if (!soundEnabled) return;
     const ctx  = getCtx();
     const freq = priorityFreqs[p];
-
     const osc  = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'triangle';
@@ -698,13 +679,10 @@
     osc.stop(ctx.currentTime + 0.18);
   }
 
-  // ── 5. All-done celebration — short ascending arpeggio ──────────────────────
   function playAllDone() {
     if (!soundEnabled) return;
     const ctx  = getCtx();
-    // Major pentatonic: C5 E5 G5 B5 C6
     const notes = [523, 659, 784, 988, 1047];
-
     notes.forEach((freq, i) => {
       const osc  = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -719,33 +697,25 @@
       osc.start(t);
       osc.stop(t + 0.55);
     });
-
-    // Brief confetti ring
     const ring = document.getElementById('confetti-ring');
     ring.classList.add('show');
     setTimeout(() => ring.classList.remove('show'), 1800);
   }
 
-  // ── 6. Easter egg — magical soothing sound (Clear Done, 3 seconds) ──────────
   function playVictoryFanfare() {
     if (!soundEnabled) return;
     const ctx = getCtx();
-
-    // Soft reverb-like effect via multiple delayed sine voices
-    // Harp-like ascending glide: C maj 9 arpeggio spread over 3s
     const harpNotes = [
-      { freq: 523.25, t: 0.00 },  // C5
-      { freq: 659.25, t: 0.18 },  // E5
-      { freq: 783.99, t: 0.36 },  // G5
-      { freq: 1046.5, t: 0.54 },  // C6
-      { freq: 1174.7, t: 0.72 },  // D6
-      { freq: 1318.5, t: 0.90 },  // E6
-      { freq: 1567.9, t: 1.10 },  // G6
-      { freq: 2093.0, t: 1.32 },  // C7  — gentle shimmer at the top
+      { freq: 523.25, t: 0.00 },
+      { freq: 659.25, t: 0.18 },
+      { freq: 783.99, t: 0.36 },
+      { freq: 1046.5, t: 0.54 },
+      { freq: 1174.7, t: 0.72 },
+      { freq: 1318.5, t: 0.90 },
+      { freq: 1567.9, t: 1.10 },
+      { freq: 2093.0, t: 1.32 },
     ];
-
     harpNotes.forEach(({ freq, t: delay }) => {
-      // Main harp pluck — sine with quick attack, long tail
       const osc  = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
@@ -758,8 +728,6 @@
       gain.connect(ctx.destination);
       osc.start(t);
       osc.stop(t + 1.65);
-
-      // Subtle octave harmonic for shimmer
       const osc2  = ctx.createOscillator();
       const gain2 = ctx.createGain();
       osc2.type = 'sine';
@@ -772,15 +740,13 @@
       osc2.start(t);
       osc2.stop(t + 1.0);
     });
-
-    // Soft pad chord underneath — C maj, slow attack, holds ~2.5s then fades
-    const padNotes = [261.63, 329.63, 392.00, 523.25]; // C4 E4 G4 C5
+    const padNotes = [261.63, 329.63, 392.00, 523.25];
     padNotes.forEach((freq, i) => {
       const osc  = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, ctx.currentTime);
-      osc.detune.setValueAtTime(i * 2, ctx.currentTime); // very slight chorus
+      osc.detune.setValueAtTime(i * 2, ctx.currentTime);
       gain.gain.setValueAtTime(0, ctx.currentTime);
       gain.gain.linearRampToValueAtTime(0.07, ctx.currentTime + 0.4);
       gain.gain.setValueAtTime(0.07, ctx.currentTime + 2.2);
@@ -790,12 +756,10 @@
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 3.05);
     });
-
-    // Gentle closing bell at ~2s
     const bell = ctx.createOscillator();
     const bGain = ctx.createGain();
     bell.type = 'sine';
-    bell.frequency.setValueAtTime(2637, ctx.currentTime + 2.0); // E7 — bright but soft
+    bell.frequency.setValueAtTime(2637, ctx.currentTime + 2.0);
     bGain.gain.setValueAtTime(0, ctx.currentTime + 2.0);
     bGain.gain.linearRampToValueAtTime(0.10, ctx.currentTime + 2.01);
     bGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3.0);
@@ -805,16 +769,261 @@
     bell.stop(ctx.currentTime + 3.05);
   }
 
-  // ── Rainbow cloud-river renderer ─────────────────────────────────────────────
-  // Warm pastel palette — peach, coral, apricot, champagne, blush
+  // ─── Illustrated Characters ────────────────────────────────────────────────
+  // Professional flat-design SVG illustrations injected during the celebration.
+
+  const CHARACTERS = [
+    {
+      // Pink Flamingo — lower-left
+      pos: { left: '4vw', bottom: '8vh' },
+      size: 160,
+      svg: `<svg viewBox="0 0 160 220" xmlns="http://www.w3.org/2000/svg">
+        <!-- Body -->
+        <ellipse cx="80" cy="110" rx="38" ry="46" fill="#F06292"/>
+        <!-- Neck -->
+        <path d="M80 68 Q60 40 68 14" stroke="#F48FB1" stroke-width="16" stroke-linecap="round" fill="none"/>
+        <!-- Head -->
+        <ellipse cx="70" cy="11" rx="16" ry="13" fill="#F48FB1"/>
+        <!-- Beak upper -->
+        <path d="M58 9 Q46 12 44 18 Q50 16 62 14 Z" fill="#1565C0"/>
+        <!-- Beak tip black -->
+        <ellipse cx="44" cy="18" rx="4" ry="3" fill="#0D2137"/>
+        <!-- Eye -->
+        <circle cx="66" cy="7" r="4" fill="#fff"/>
+        <circle cx="67" cy="7" r="2.2" fill="#1A2028"/>
+        <circle cx="68" cy="6" r="0.8" fill="#fff"/>
+        <!-- Wing -->
+        <ellipse cx="105" cy="102" rx="22" ry="34" fill="#EC407A" transform="rotate(18,105,102)"/>
+        <ellipse cx="105" cy="102" rx="13" ry="22" fill="#F48FB1" transform="rotate(18,105,102)"/>
+        <!-- Legs -->
+        <line x1="70" y1="152" x2="62" y2="200" stroke="#F48FB1" stroke-width="7" stroke-linecap="round"/>
+        <line x1="90" y1="152" x2="98" y2="200" stroke="#F48FB1" stroke-width="7" stroke-linecap="round"/>
+        <!-- Knee knob -->
+        <circle cx="65" cy="178" r="5" fill="#EC407A"/>
+        <circle cx="95" cy="178" r="5" fill="#EC407A"/>
+        <!-- Feet -->
+        <path d="M62 200 Q54 206 48 202 Q56 198 62 200Z" fill="#F48FB1"/>
+        <path d="M62 200 Q60 210 54 212 Q58 204 62 200Z" fill="#F48FB1"/>
+        <path d="M62 200 Q68 210 72 208 Q66 204 62 200Z" fill="#F48FB1"/>
+        <path d="M98 200 Q106 206 112 202 Q104 198 98 200Z" fill="#F48FB1"/>
+        <path d="M98 200 Q96 210 90 212 Q94 204 98 200Z" fill="#F48FB1"/>
+        <path d="M98 200 Q104 210 108 208 Q102 204 98 200Z" fill="#F48FB1"/>
+        <!-- Chest highlight -->
+        <ellipse cx="72" cy="100" rx="14" ry="18" fill="#F48FB1" opacity="0.45"/>
+      </svg>`
+    },
+    {
+      // Gujarat Elephant — bottom-center-left
+      pos: { left: '28vw', bottom: '5vh' },
+      size: 190,
+      svg: `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+        <!-- Body -->
+        <ellipse cx="105" cy="138" rx="72" ry="62" fill="#6D4C41"/>
+        <!-- Head -->
+        <circle cx="68" cy="80" r="50" fill="#795548"/>
+        <!-- Forehead dome highlight -->
+        <ellipse cx="62" cy="58" rx="28" ry="22" fill="#8D6E63" opacity="0.5"/>
+        <!-- Ear left — decorative Gujarat style -->
+        <ellipse cx="22" cy="82" rx="22" ry="34" fill="#A1887F"/>
+        <!-- Ear inner pattern -->
+        <ellipse cx="22" cy="82" rx="13" ry="22" fill="#FFCC80" opacity="0.7"/>
+        <circle cx="22" cy="72" r="5" fill="#FF7043" opacity="0.8"/>
+        <circle cx="17" cy="84" r="4" fill="#42A5F5" opacity="0.8"/>
+        <circle cx="27" cy="88" r="4" fill="#66BB6A" opacity="0.8"/>
+        <!-- Trunk -->
+        <path d="M44 116 Q28 144 34 168 Q38 178 44 174 Q46 160 44 148 Q50 136 56 128Z" fill="#6D4C41"/>
+        <!-- Trunk curl -->
+        <path d="M34 168 Q24 178 30 184 Q38 180 44 174Z" fill="#795548"/>
+        <!-- Tusk left -->
+        <path d="M50 118 Q34 128 28 138 Q36 134 50 122Z" fill="#FFF9C4"/>
+        <!-- Eye -->
+        <circle cx="52" cy="74" r="8" fill="#fff"/>
+        <circle cx="53" cy="74" r="5" fill="#1A2028"/>
+        <circle cx="55" cy="72" r="1.8" fill="#fff"/>
+        <!-- Eyelash top -->
+        <path d="M46 68 Q50 64 56 66" stroke="#1A2028" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <!-- Legs -->
+        <rect x="48"  y="188" width="28" height="32" rx="10" fill="#6D4C41"/>
+        <rect x="126" y="188" width="28" height="32" rx="10" fill="#6D4C41"/>
+        <rect x="74"  y="190" width="26" height="30" rx="10" fill="#795548"/>
+        <rect x="102" y="190" width="26" height="30" rx="10" fill="#795548"/>
+        <!-- Feet toenails -->
+        <ellipse cx="62"  cy="220" rx="10" ry="4" fill="#4E342E"/>
+        <ellipse cx="140" cy="220" rx="10" ry="4" fill="#4E342E"/>
+        <!-- Gujarat decorative blanket -->
+        <path d="M50 130 Q105 112 162 130 L158 158 Q105 144 50 158Z" fill="#E53935"/>
+        <!-- Blanket embroidery pattern -->
+        <ellipse cx="105" cy="143" rx="20" ry="8" fill="#FFD54F" opacity="0.9"/>
+        <circle cx="105" cy="143" r="5" fill="#E53935"/>
+        <circle cx="84"  cy="143" r="4" fill="#FFD54F" opacity="0.7"/>
+        <circle cx="126" cy="143" r="4" fill="#FFD54F" opacity="0.7"/>
+        <path d="M60 135 Q65 130 70 135 Q65 140 60 135Z" fill="#FFD54F" opacity="0.8"/>
+        <path d="M136 135 Q141 130 146 135 Q141 140 136 135Z" fill="#FFD54F" opacity="0.8"/>
+        <!-- Blanket fringe -->
+        <line x1="56"  y1="158" x2="52"  y2="168" stroke="#FFD54F" stroke-width="2"/>
+        <line x1="70"  y1="160" x2="68"  y2="170" stroke="#FFD54F" stroke-width="2"/>
+        <line x1="84"  y1="161" x2="83"  y2="171" stroke="#FFD54F" stroke-width="2"/>
+        <line x1="98"  y1="162" x2="97"  y2="172" stroke="#FFD54F" stroke-width="2"/>
+        <line x1="112" y1="161" x2="112" y2="171" stroke="#FFD54F" stroke-width="2"/>
+        <line x1="126" y1="160" x2="127" y2="170" stroke="#FFD54F" stroke-width="2"/>
+        <line x1="140" y1="158" x2="142" y2="168" stroke="#FFD54F" stroke-width="2"/>
+        <line x1="154" y1="155" x2="158" y2="165" stroke="#FFD54F" stroke-width="2"/>
+        <!-- Head jewel bindi -->
+        <circle cx="68" cy="52" r="7" fill="#FFD54F"/>
+        <circle cx="68" cy="52" r="4" fill="#E53935"/>
+        <!-- Forehead chain -->
+        <path d="M44 62 Q56 52 68 52 Q80 52 90 62" stroke="#FFD54F" stroke-width="2" fill="none"/>
+        <circle cx="44" cy="62" r="3" fill="#FFD54F"/>
+        <circle cx="90" cy="62" r="3" fill="#FFD54F"/>
+        <!-- Tail -->
+        <path d="M174 148 Q190 152 192 164 Q186 158 178 162" stroke="#6D4C41" stroke-width="6" stroke-linecap="round" fill="none"/>
+        <ellipse cx="192" cy="165" rx="5" ry="8" fill="#4E342E" transform="rotate(20,192,165)"/>
+      </svg>`
+    },
+    {
+      // Red Hibiscus — bottom-center-right
+      pos: { right: '26vw', bottom: '6vh' },
+      size: 165,
+      svg: `<svg viewBox="0 0 180 200" xmlns="http://www.w3.org/2000/svg">
+        <!-- Stem -->
+        <path d="M90 200 Q82 170 90 148" stroke="#2E7D32" stroke-width="8" stroke-linecap="round" fill="none"/>
+        <!-- Leaf left -->
+        <path d="M82 175 Q56 164 52 148 Q70 152 82 175Z" fill="#388E3C"/>
+        <path d="M82 175 Q66 162 68 148" stroke="#2E7D32" stroke-width="1.5" fill="none"/>
+        <!-- Leaf right -->
+        <path d="M94 168 Q118 158 122 142 Q104 146 94 168Z" fill="#43A047"/>
+        <path d="M94 168 Q110 155 110 142" stroke="#2E7D32" stroke-width="1.5" fill="none"/>
+        <!-- Petal 1 (top) -->
+        <path d="M90 80 Q70 40 90 20 Q110 40 90 80Z" fill="#C62828"/>
+        <path d="M90 80 Q86 50 90 20" stroke="#B71C1C" stroke-width="1.5" fill="none" opacity="0.6"/>
+        <!-- Petal 2 (top-right) -->
+        <path d="M90 80 Q135 60 152 38 Q128 68 90 80Z" fill="#D32F2F"/>
+        <path d="M90 80 Q122 66 152 38" stroke="#B71C1C" stroke-width="1.5" fill="none" opacity="0.6"/>
+        <!-- Petal 3 (bottom-right) -->
+        <path d="M90 80 Q148 100 158 130 Q122 110 90 80Z" fill="#C62828"/>
+        <path d="M90 80 Q128 106 158 130" stroke="#B71C1C" stroke-width="1.5" fill="none" opacity="0.6"/>
+        <!-- Petal 4 (bottom-left) -->
+        <path d="M90 80 Q32 100 22 130 Q58 110 90 80Z" fill="#D32F2F"/>
+        <path d="M90 80 Q52 106 22 130" stroke="#B71C1C" stroke-width="1.5" fill="none" opacity="0.6"/>
+        <!-- Petal 5 (top-left) -->
+        <path d="M90 80 Q45 60 28 38 Q62 68 90 80Z" fill="#C62828"/>
+        <path d="M90 80 Q58 66 28 38" stroke="#B71C1C" stroke-width="1.5" fill="none" opacity="0.6"/>
+        <!-- Petal highlights -->
+        <path d="M90 78 Q75 48 90 24" stroke="#EF9A9A" stroke-width="2" fill="none" opacity="0.55" stroke-linecap="round"/>
+        <path d="M90 78 Q126 68 148 44" stroke="#EF9A9A" stroke-width="2" fill="none" opacity="0.45" stroke-linecap="round"/>
+        <!-- Stamen column -->
+        <rect x="84" y="58" width="12" height="36" rx="6" fill="#FF6F00"/>
+        <!-- Stamen top bulb -->
+        <circle cx="90" cy="56" r="10" fill="#FFB300"/>
+        <!-- Stigma dots -->
+        <circle cx="84" cy="50" r="4" fill="#E65100"/>
+        <circle cx="90" cy="46" r="4" fill="#E65100"/>
+        <circle cx="96" cy="50" r="4" fill="#E65100"/>
+        <circle cx="88" cy="56" r="2.5" fill="#fff" opacity="0.7"/>
+        <!-- Anther yellow dots around stamen -->
+        <circle cx="80" cy="58" r="3" fill="#FFD54F"/>
+        <circle cx="100" cy="58" r="3" fill="#FFD54F"/>
+        <circle cx="86" cy="70" r="3" fill="#FFD54F"/>
+        <circle cx="94" cy="70" r="3" fill="#FFD54F"/>
+      </svg>`
+    },
+    {
+      // Japanese Cherry Blossom — lower-right
+      pos: { right: '4vw', bottom: '7vh' },
+      size: 170,
+      svg: `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+        <!-- Branch main -->
+        <path d="M30 220 Q60 180 100 148 Q130 124 160 110" stroke="#5D4037" stroke-width="11" stroke-linecap="round" fill="none"/>
+        <!-- Branch sub left -->
+        <path d="M80 165 Q64 144 52 130" stroke="#6D4C41" stroke-width="7" stroke-linecap="round" fill="none"/>
+        <!-- Branch sub right -->
+        <path d="M128 134 Q142 116 150 100" stroke="#6D4C41" stroke-width="7" stroke-linecap="round" fill="none"/>
+        <!-- Bark texture -->
+        <path d="M50 198 Q56 188 62 180" stroke="#795548" stroke-width="2" fill="none" opacity="0.5"/>
+        <path d="M80 172 Q84 162 90 154" stroke="#795548" stroke-width="2" fill="none" opacity="0.5"/>
+
+        <!-- Helper: blossom macro at cx,cy,r,rot -->
+        <!-- Blossom 1 — main cluster top -->
+        <g transform="translate(152,104) rotate(10)">
+          <ellipse cx="-18" cy="0" rx="13" ry="9"  fill="#F48FB1" transform="rotate(0)"/>
+          <ellipse cx="-5"  cy="-17" rx="13" ry="9" fill="#F06292" transform="rotate(72)"/>
+          <ellipse cx="14"  cy="-11" rx="13" ry="9" fill="#F48FB1" transform="rotate(144)"/>
+          <ellipse cx="14"  cy="11"  rx="13" ry="9" fill="#F06292" transform="rotate(216)"/>
+          <ellipse cx="-5"  cy="17"  rx="13" ry="9" fill="#F48FB1" transform="rotate(288)"/>
+          <circle cx="0" cy="0" r="7" fill="#FFE0B2"/>
+          <circle cx="-2" cy="-1" r="3" fill="#FF8A65"/>
+          <!-- Stamens -->
+          <line x1="0" y1="0" x2="6"  y2="-5" stroke="#FF7043" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="0" y1="0" x2="-6" y2="-4" stroke="#FF7043" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="0" y1="0" x2="0"  y2="7"  stroke="#FF7043" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="6"  cy="-5"  r="1.8" fill="#FFD54F"/>
+          <circle cx="-6" cy="-4"  r="1.8" fill="#FFD54F"/>
+          <circle cx="0"  cy="7"   r="1.8" fill="#FFD54F"/>
+        </g>
+
+        <!-- Blossom 2 -->
+        <g transform="translate(112,136) rotate(-15)">
+          <ellipse cx="-16" cy="0"  rx="12" ry="8" fill="#F48FB1" transform="rotate(0)"/>
+          <ellipse cx="-4"  cy="-15" rx="12" ry="8" fill="#F8BBD9" transform="rotate(72)"/>
+          <ellipse cx="13"  cy="-10" rx="12" ry="8" fill="#F48FB1" transform="rotate(144)"/>
+          <ellipse cx="13"  cy="10"  rx="12" ry="8" fill="#F8BBD9" transform="rotate(216)"/>
+          <ellipse cx="-4"  cy="15"  rx="12" ry="8" fill="#F48FB1" transform="rotate(288)"/>
+          <circle cx="0" cy="0" r="6" fill="#FFE0B2"/>
+          <circle cx="1" cy="-1" r="2.8" fill="#FF8A65"/>
+        </g>
+
+        <!-- Blossom 3 — sub-branch left -->
+        <g transform="translate(52,128) rotate(25)">
+          <ellipse cx="-14" cy="0"  rx="11" ry="7.5" fill="#F06292" transform="rotate(0)"/>
+          <ellipse cx="-4"  cy="-13" rx="11" ry="7.5" fill="#F48FB1" transform="rotate(72)"/>
+          <ellipse cx="11"  cy="-9"  rx="11" ry="7.5" fill="#F06292" transform="rotate(144)"/>
+          <ellipse cx="11"  cy="9"   rx="11" ry="7.5" fill="#F48FB1" transform="rotate(216)"/>
+          <ellipse cx="-4"  cy="13"  rx="11" ry="7.5" fill="#F06292" transform="rotate(288)"/>
+          <circle cx="0" cy="0" r="5.5" fill="#FFE0B2"/>
+          <circle cx="-1" cy="1" r="2.5" fill="#FF8A65"/>
+        </g>
+
+        <!-- Blossom 4 — small, sub right -->
+        <g transform="translate(148,98) rotate(-30)">
+          <ellipse cx="-10" cy="0"  rx="8" ry="5.5" fill="#F8BBD9" transform="rotate(0)"/>
+          <ellipse cx="-3"  cy="-9"  rx="8" ry="5.5" fill="#F48FB1" transform="rotate(72)"/>
+          <ellipse cx="8"   cy="-6"  rx="8" ry="5.5" fill="#F8BBD9" transform="rotate(144)"/>
+          <ellipse cx="8"   cy="6"   rx="8" ry="5.5" fill="#F48FB1" transform="rotate(216)"/>
+          <ellipse cx="-3"  cy="9"   rx="8" ry="5.5" fill="#F8BBD9" transform="rotate(288)"/>
+          <circle cx="0" cy="0" r="4.5" fill="#FFF8E1"/>
+        </g>
+
+        <!-- Blossom 5 — on main branch mid -->
+        <g transform="translate(88,156) rotate(8)">
+          <ellipse cx="-13" cy="0"  rx="10" ry="7" fill="#F48FB1" transform="rotate(0)"/>
+          <ellipse cx="-4"  cy="-12" rx="10" ry="7" fill="#F06292" transform="rotate(72)"/>
+          <ellipse cx="11"  cy="-8"  rx="10" ry="7" fill="#F48FB1" transform="rotate(144)"/>
+          <ellipse cx="11"  cy="8"   rx="10" ry="7" fill="#F06292" transform="rotate(216)"/>
+          <ellipse cx="-4"  cy="12"  rx="10" ry="7" fill="#F48FB1" transform="rotate(288)"/>
+          <circle cx="0" cy="0" r="5" fill="#FFE0B2"/>
+          <circle cx="0" cy="-1" r="2.2" fill="#FF8A65"/>
+        </g>
+
+        <!-- Falling petals -->
+        <ellipse cx="170" cy="60"  rx="8" ry="5" fill="#F8BBD9" transform="rotate(-30,170,60)"  opacity="0.85"/>
+        <ellipse cx="40"  cy="90"  rx="7" ry="4" fill="#F48FB1" transform="rotate(15,40,90)"   opacity="0.8"/>
+        <ellipse cx="130" cy="76"  rx="6" ry="4" fill="#F8BBD9" transform="rotate(40,130,76)"  opacity="0.75"/>
+        <ellipse cx="68"  cy="110" rx="7" ry="4" fill="#F06292" transform="rotate(-20,68,110)" opacity="0.8"/>
+        <ellipse cx="178" cy="84"  rx="5" ry="3" fill="#F8BBD9" transform="rotate(55,178,84)"  opacity="0.7"/>
+        <ellipse cx="26"  cy="150" rx="6" ry="3.5" fill="#F48FB1" transform="rotate(-10,26,150)" opacity="0.75"/>
+      </svg>`
+    }
+  ];
+
+  // ─── Rainbow River + Characters ────────────────────────────────────────────
   const pastelPalette = [
-    { h: 10,  s: 100, l: 76 },  // #FF9A86 coral-peach
-    { h: 20,  s: 100, l: 80 },  // #FFB399 apricot
-    { h: 35,  s: 100, l: 83 },  // #FFD6A6 warm champagne
-    { h: 48,  s: 100, l: 87 },  // #FFF0BE soft gold
-    { h: 345, s: 100, l: 87 },  // #FFB6C1 blush pink
-    { h: 15,  s: 100, l: 84 },  // peachy cream
-    { h: 28,  s: 100, l: 86 },  // #FFCAA5 light apricot
+    { h: 10,  s: 100, l: 76 },
+    { h: 20,  s: 100, l: 80 },
+    { h: 35,  s: 100, l: 83 },
+    { h: 48,  s: 100, l: 87 },
+    { h: 345, s: 100, l: 87 },
+    { h: 15,  s: 100, l: 84 },
+    { h: 28,  s: 100, l: 86 },
   ];
 
   function launchRainbowRiver() {
@@ -838,6 +1047,24 @@
         vy:    (Math.random() - 0.5) * 3,
       };
     });
+
+    // ── Inject illustrated characters ──────────────────────────────────────
+    const injectedChars = [];
+    CHARACTERS.forEach((char, idx) => {
+      const el = document.createElement('div');
+      el.className = 'celebration-character';
+      el.style.cssText = Object.entries(char.pos).map(([k,v]) => `${k}:${v}`).join(';');
+      el.style.width  = char.size + 'px';
+      el.style.height = char.size + 'px';
+      el.innerHTML = char.svg;
+      document.body.appendChild(el);
+      injectedChars.push(el);
+    });
+
+    // Remove characters after 3 s
+    setTimeout(() => {
+      injectedChars.forEach(el => el.remove());
+    }, 3100);
 
     const start    = performance.now();
     const duration = 3000;
@@ -877,6 +1104,8 @@
     overlay.classList.add('show');
     requestAnimationFrame(frame);
   }
+
+  // ─── App State ─────────────────────────────────────────────────────────────
   let tasks            = JSON.parse(localStorage.getItem('myDay_tasks') || '[]');
   let selectedPriority = 'low';
   let activeFilter     = 'all';
@@ -884,7 +1113,7 @@
   let deletedTask      = null;
   let deletedIndex     = null;
   let toastTimer       = null;
-  let prevActiveCount  = null; // used to detect transition to zero
+  let prevActiveCount  = null;
 
   const priorityOrder = { high: 0, mid: 1, low: 2 };
 
@@ -930,12 +1159,9 @@
     const li = document.querySelector(`li[data-id="${id}"]`);
     if (!li) return;
     li.classList.add('completing');
-
-    // Fire sound immediately for snappy feel
     const t = tasks.find(t => t.id === id);
     const willBeDone = t && !t.done;
     playDing(willBeDone);
-
     setTimeout(() => {
       if (t) { t.done = !t.done; save(); render(); }
     }, 200);
@@ -984,9 +1210,8 @@
     const active = tasks.filter(t => !t.done).length;
     const done   = tasks.filter(t => t.done).length;
 
-    // Detect transition to all-done
     if (prevActiveCount !== null && prevActiveCount > 0 && active === 0 && total > 0) {
-      setTimeout(playAllDone, 250); // slight delay so ding lands first
+      setTimeout(playAllDone, 250);
     }
     prevActiveCount = active;
 
@@ -1046,7 +1271,6 @@
   setDate();
   render();
 
-  // Clock + seconds bar
   function updateClock() {
     const now  = new Date();
     const hrs  = now.getHours();
