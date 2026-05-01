@@ -26,11 +26,22 @@
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  /* Screen-reader only utility */
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   body {
     font-family: 'JetBrains Mono', monospace;
     background: var(--bg);
     color: var(--text);
-    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -47,6 +58,7 @@
     box-shadow: 0 4px 24px rgba(26,32,40,0.07);
   }
 
+  /* Header */
   .header {
     margin-bottom: 2rem;
     display: flex;
@@ -67,13 +79,13 @@
     font-family: 'IBM Plex Mono', monospace;
   }
 
+  /* Clock */
   .clock-block {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 5px;
     flex-shrink: 0;
-    width: fit-content;
   }
   .clock-time {
     font-family: 'IBM Plex Mono', monospace;
@@ -92,31 +104,19 @@
   }
   .seconds-bar-fill {
     height: 100%;
-    width: 0%;
     background: var(--text-3);
     border-radius: 99px;
     transition: width 0.95s linear;
   }
 
-  .sound-btn {
-    background: none;
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 0.82rem;
+  /* Input */
+  .input-label {
+    display: block;
+    font-size: 0.72rem;
     color: var(--text-3);
-    transition: all 0.15s;
-    margin-top: 2px;
-    flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 5px;
   }
-  .sound-btn:hover { border-color: var(--text-2); color: var(--text-2); }
-  .sound-btn.muted { opacity: 0.4; }
-
   .input-wrap {
     position: relative;
     margin-bottom: 0.7rem;
@@ -160,6 +160,7 @@
   .add-btn:hover { opacity: 0.75; }
   .add-btn:active { transform: translateY(-50%) scale(0.9); }
 
+  /* Toolbar */
   .toolbar {
     display: flex;
     align-items: center;
@@ -182,35 +183,16 @@
   .priority-btn.active-mid  { border-color: var(--mid);  color: var(--mid);  background: #fef3c755; }
   .priority-btn.active-high { border-color: var(--high); color: var(--high); background: #fee2e255; }
 
-  .time-pill {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .time-pill label {
-    font-size: 0.7rem;
-    color: var(--text-3);
-    font-family: 'IBM Plex Mono', monospace;
-  }
-  input[type="time"] {
-    border: 1.5px solid var(--border);
-    background: transparent;
-    border-radius: 8px;
-    padding: 4px 8px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-2);
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  input[type="time"]:focus { border-color: var(--accent); }
-
-  .kbd-strip { display: none; }
-
+  /* Divider */
   .divider { height: 1px; background: var(--border); margin-bottom: 0.5rem; }
 
-  .filters { display: flex; gap: 0; margin-bottom: 0.25rem; }
+  /* Filters */
+  .filters {
+    display: flex;
+    gap: 0;
+    margin-bottom: 0.25rem;
+    role: tablist;
+  }
   .filter-btn {
     flex: 1;
     padding: 8px 0;
@@ -231,9 +213,40 @@
     border-bottom-color: var(--text);
   }
 
+  /* Bulk actions */
+  .bulk-bar {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    margin-bottom: 4px;
+  }
+  .bulk-bar.visible { display: flex; }
+  .bulk-count {
+    font-size: 0.72rem;
+    color: var(--text-2);
+    font-family: 'IBM Plex Mono', monospace;
+    flex: 1;
+  }
+  .bulk-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .bulk-btn:hover { background: var(--surface-2); }
+  .bulk-btn.danger:hover { background: #fee2e2; border-color: var(--high); color: var(--high); }
+
+  /* Task list */
   ul {
     list-style: none;
-    max-height: calc(100vh - 480px);
+    max-height: 45dvh;
     min-height: 60px;
     overflow-y: auto;
     margin-top: 0.25rem;
@@ -246,7 +259,6 @@
     gap: 11px;
     padding: 13px 0;
     border-bottom: 1px solid var(--border);
-    cursor: pointer;
     animation: fadeUp 0.2s ease both;
     transition: opacity 0.22s ease, transform 0.22s ease;
   }
@@ -272,6 +284,13 @@
     transform: translate(-50%, -62%) rotate(45deg) scale(1);
   }
 
+  li.selected { background: rgba(26,32,40,0.03); border-radius: 8px; }
+
+  /* Drag-and-drop */
+  li.dragging { opacity: 0.4; }
+  li.drag-over { border-top: 2px solid var(--accent); }
+
+  /* Check circle */
   .check-circle {
     width: 19px;
     height: 19px;
@@ -280,6 +299,7 @@
     flex-shrink: 0;
     position: relative;
     transition: background 0.2s, border-color 0.2s;
+    cursor: pointer;
   }
   .check-circle::after {
     content: '';
@@ -296,18 +316,26 @@
                 transform 0.18s cubic-bezier(.34,1.56,.64,1);
   }
 
-  .p-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
+  /* Priority badge (replaces color-only dot) */
+  .p-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 4px;
     flex-shrink: 0;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
   }
-  .p-dot.high { background: var(--high); }
-  .p-dot.mid  { background: var(--mid);  }
-  .p-dot.low  { background: var(--low);  }
+  .p-badge.high { background: #fee2e2; color: var(--high); }
+  .p-badge.mid  { background: #fef3c7; color: var(--mid); }
+  .p-badge.low  { background: #d8f3dc; color: var(--low); }
 
-  .task-text {
+  .task-body {
     flex: 1;
+    min-width: 0;
+  }
+  .task-text {
     font-size: 0.91rem;
     font-weight: 500;
     word-break: break-word;
@@ -315,13 +343,66 @@
     color: var(--text);
     transition: color 0.2s;
   }
-
-  .task-time {
+  .task-meta {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.66rem;
+    font-size: 0.63rem;
     color: var(--text-3);
-    flex-shrink: 0;
+    margin-top: 2px;
   }
+
+  /* Select checkbox (bulk mode) */
+  .select-box {
+    width: 15px;
+    height: 15px;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+    display: none;
+  }
+  .select-box.checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .select-box.checked::after {
+    content: '';
+    width: 3px;
+    height: 6px;
+    border-right: 1.5px solid #fff;
+    border-bottom: 1.5px solid #fff;
+    transform: rotate(45deg) translateY(-1px);
+  }
+  .bulk-mode .select-box { display: flex; }
+
+  /* Drag handle */
+  .drag-handle {
+    cursor: grab;
+    color: var(--text-3);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+    padding: 0 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+  .drag-handle span {
+    display: block;
+    width: 10px;
+    height: 1.5px;
+    background: var(--text-3);
+    border-radius: 99px;
+  }
+  li:hover .drag-handle { opacity: 1; }
+  .drag-handle:active { cursor: grabbing; }
 
   .delete-btn {
     background: transparent;
@@ -339,16 +420,28 @@
     opacity: 0;
     transition: opacity 0.15s, background 0.15s, color 0.15s;
   }
-  li:hover .delete-btn { opacity: 1; }
+  li:hover .delete-btn,
+  li:focus-within .delete-btn { opacity: 1; }
   .delete-btn:hover { background: #fee2e2; color: var(--high); }
 
+  /* Empty state */
   .empty-state {
     padding: 2.5rem 0 1.5rem;
     color: var(--text-3);
     font-size: 0.82rem;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .empty-icon {
+    width: 36px;
+    height: 36px;
+    opacity: 0.25;
   }
 
+  /* Footer */
   .footer-row {
     display: flex;
     align-items: center;
@@ -381,6 +474,7 @@
   #clear-btn { display: none; }
   #clear-btn.visible { display: block; }
 
+  /* Toast */
   .toast {
     position: fixed;
     bottom: 1.5rem;
@@ -414,249 +508,186 @@
   }
   .toast-undo:hover { background: rgba(255,255,255,0.1); }
 
-  .confetti-ring {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 998;
-    display: flex;
+  /* Carry-over banner */
+  .carry-banner {
+    display: none;
     align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.4s;
+    gap: 8px;
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    font-size: 0.72rem;
+    color: var(--mid);
+    font-family: 'IBM Plex Mono', monospace;
   }
-  .confetti-ring.show { opacity: 1; }
-  .confetti-ring svg { width: 320px; height: 320px; }
-
-  .rainbow-river {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 9999;
-    opacity: 0;
-    overflow: hidden;
+  .carry-banner.visible { display: flex; }
+  .carry-yes {
+    margin-left: auto;
+    background: none;
+    border: 1px solid var(--mid);
+    color: var(--mid);
+    padding: 3px 9px;
+    border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
   }
-  .rainbow-river.show { animation: riverFade 3s ease forwards; }
-  @keyframes riverFade {
-    0%   { opacity: 0; }
-    8%   { opacity: 1; }
-    80%  { opacity: 1; }
-    100% { opacity: 0; }
+  .carry-no {
+    background: none;
+    border: none;
+    color: var(--text-3);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    cursor: pointer;
   }
-
-  /* ── Illustrated characters ──────────────────────────────────────────────── */
-  .celebration-character {
-    position: fixed;
-    pointer-events: none;
-    z-index: 10000;
-    opacity: 0;
-    transform: translateY(30px) scale(0.7);
-    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.18));
-    animation: charRise 3s cubic-bezier(.34,1.56,.64,1) forwards;
-  }
-  @keyframes charRise {
-    0%   { opacity: 0;    transform: translateY(40px) scale(0.65) rotate(-4deg); }
-    12%  { opacity: 1;    transform: translateY(-8px) scale(1.05) rotate(2deg);  }
-    22%  { opacity: 1;    transform: translateY(0px)  scale(1)    rotate(0deg);  }
-    75%  { opacity: 1;    transform: translateY(-6px) scale(1)    rotate(-1deg); }
-    100% { opacity: 0;    transform: translateY(-30px) scale(0.9) rotate(3deg);  }
-  }
-  /* Each character gets a slight wobble offset */
-  .celebration-character:nth-child(1) { animation-delay: 0.00s; }
-  .celebration-character:nth-child(2) { animation-delay: 0.12s; }
-  .celebration-character:nth-child(3) { animation-delay: 0.22s; }
-  .celebration-character:nth-child(4) { animation-delay: 0.32s; }
 </style>
 </head>
 <body>
-<div class="container">
+<div class="container" role="main">
+  <h2 class="sr-only">My Day — task manager</h2>
 
   <div class="header">
     <div class="header-left">
       <h1>My Day</h1>
-      <div class="date" id="date-display"></div>
+      <div class="date" id="date-display" aria-live="polite"></div>
     </div>
-    <div style="display:flex;align-items:flex-start;gap:8px;">
-      <button class="sound-btn" id="sound-btn" onclick="toggleSound()" title="Toggle sound">🔊</button>
-      <div class="clock-block">
-        <div class="clock-time" id="clock-time"></div>
-        <div class="seconds-bar-track">
-          <div class="seconds-bar-fill" id="seconds-bar"></div>
-        </div>
+    <div class="clock-block" aria-hidden="true">
+      <div class="clock-time" id="clock-time"></div>
+      <div class="seconds-bar-track">
+        <div class="seconds-bar-fill" id="seconds-bar"></div>
       </div>
     </div>
   </div>
 
+  <!-- Carry-over banner (shown when incomplete tasks exist from a previous day) -->
+  <div class="carry-banner" id="carry-banner" role="alert">
+    <span id="carry-text"></span>
+    <button class="carry-yes" onclick="carryOver()">Carry over</button>
+    <button class="carry-no"  onclick="dismissCarry()">Dismiss</button>
+  </div>
+
+  <label class="sr-only" for="task-input">New task</label>
   <div class="input-wrap">
-    <input type="text" id="task-input" placeholder="Add a task..." maxlength="80" autocomplete="off">
-    <button class="add-btn" onclick="addTask()" title="Add (Enter)">+</button>
+    <input type="text" id="task-input" placeholder="Add a task…" maxlength="80" autocomplete="off">
+    <button class="add-btn" id="add-btn" aria-label="Add task">+</button>
   </div>
 
-  <div class="toolbar">
-    <button class="priority-btn active-low" data-p="low"  onclick="selectPriority('low')">Low</button>
-    <button class="priority-btn"            data-p="mid"  onclick="selectPriority('mid')">Mid</button>
-    <button class="priority-btn"            data-p="high" onclick="selectPriority('high')">High</button>
-    <div class="time-pill">
-      <label for="time-input">at</label>
-      <input type="time" id="time-input">
-    </div>
-  </div>
-
-  <div class="kbd-strip">
-    <kbd>Enter</kbd> add &nbsp;·&nbsp; <kbd>Alt 1/2/3</kbd> priority
+  <div class="toolbar" role="group" aria-label="Priority">
+    <button class="priority-btn active-low" data-p="low"  aria-pressed="true"  onclick="selectPriority('low')">Low</button>
+    <button class="priority-btn"            data-p="mid"  aria-pressed="false" onclick="selectPriority('mid')">Mid</button>
+    <button class="priority-btn"            data-p="high" aria-pressed="false" onclick="selectPriority('high')">High</button>
   </div>
 
   <div class="divider"></div>
 
-  <div class="filters">
-    <button class="filter-btn active" data-f="all"    onclick="setFilter('all')">All <span id="cnt-all"></span></button>
-    <button class="filter-btn"        data-f="active" onclick="setFilter('active')">Active <span id="cnt-active"></span></button>
-    <button class="filter-btn"        data-f="done"   onclick="setFilter('done')">Done <span id="cnt-done"></span></button>
+  <div class="filters" role="tablist" aria-label="Filter tasks">
+    <button class="filter-btn active" role="tab" aria-selected="true"  data-f="all"    onclick="setFilter('all')">All <span id="cnt-all"></span></button>
+    <button class="filter-btn"        role="tab" aria-selected="false" data-f="active" onclick="setFilter('active')">Active <span id="cnt-active"></span></button>
+    <button class="filter-btn"        role="tab" aria-selected="false" data-f="done"   onclick="setFilter('done')">Done <span id="cnt-done"></span></button>
   </div>
 
-  <ul id="task-list"></ul>
+  <!-- Bulk action bar -->
+  <div class="bulk-bar" id="bulk-bar" role="toolbar" aria-label="Bulk actions">
+    <span class="bulk-count" id="bulk-count" aria-live="polite"></span>
+    <button class="bulk-btn" onclick="bulkDone()" aria-label="Mark selected tasks done">Mark done</button>
+    <button class="bulk-btn danger" onclick="bulkDelete()" aria-label="Delete selected tasks">Delete</button>
+    <button class="bulk-btn" onclick="exitBulk()" aria-label="Exit bulk selection">Cancel</button>
+  </div>
+
+  <ul id="task-list" role="list" aria-label="Tasks" aria-live="polite" aria-relevant="additions removals"></ul>
 
   <div class="footer-row">
-    <span class="task-counter" id="task-counter"></span>
+    <span class="task-counter" id="task-counter" aria-live="polite"></span>
     <div class="footer-actions">
-      <button class="ghost-btn danger" id="clear-btn" onclick="clearDone()">Clear done</button>
-      <button class="ghost-btn" id="sort-btn" onclick="toggleSort()">Sort</button>
+      <button class="ghost-btn danger" id="clear-btn" onclick="clearDone()" aria-label="Clear completed tasks">Clear done</button>
+      <button class="ghost-btn" id="sort-btn" onclick="toggleSort()" aria-pressed="false" aria-label="Sort by priority">Sort</button>
+      <button class="ghost-btn" id="bulk-toggle" onclick="toggleBulk()" aria-pressed="false" aria-label="Toggle bulk selection">Select</button>
     </div>
   </div>
-
 </div>
 
-<div class="toast" id="toast">
-  Task removed
+<div class="toast" id="toast" role="status" aria-live="assertive">
+  <span id="toast-msg">Task removed</span>
   <button class="toast-undo" onclick="undoDelete()">Undo</button>
 </div>
 
-<div class="confetti-ring" id="confetti-ring"></div>
-<div class="rainbow-river" id="rainbow-river">
-  <canvas id="rainbow-canvas"></canvas>
-</div>
-
 <script>
-  // ─── Audio Engine ──────────────────────────────────────────────────────────
-  let audioCtx = null;
-  let soundEnabled = localStorage.getItem('myDay_sound') !== 'false';
+  /* ── Storage ── */
+  const Storage = (() => {
+    function get(key, fallback) {
+      try { const v = localStorage.getItem(key); return v !== null ? JSON.parse(v) : fallback; }
+      catch { return fallback; }
+    }
+    function set(key, val) {
+      try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+    }
+    return { get, set };
+  })();
 
-  function getCtx() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    return audioCtx;
+  /* ── State ── */
+  let tasks            = Storage.get('myDay_tasks', []);
+  let selectedPriority = 'low';
+  let activeFilter     = 'all';
+  let sortByPriority   = false;
+  let bulkMode         = false;
+  let selectedIds      = new Set();
+  let deletedTask      = null;
+  let deletedIndex     = null;
+  let toastTimer       = null;
+  let idCounter        = Storage.get('myDay_idCounter', 1);
+  let lastSavedDate    = Storage.get('myDay_lastDate', null);
+
+  const priorityOrder  = { high: 0, mid: 1, low: 2 };
+
+  function nextId() { idCounter++; Storage.set('myDay_idCounter', idCounter); return idCounter; }
+  function save()   { Storage.set('myDay_tasks', tasks); }
+
+  /* ── Carry-over check ── */
+  function checkCarryOver() {
+    const today = new Date().toDateString();
+    if (lastSavedDate && lastSavedDate !== today) {
+      const incomplete = tasks.filter(t => !t.done && !t.carriedOver);
+      if (incomplete.length) {
+        const banner = document.getElementById('carry-banner');
+        document.getElementById('carry-text').textContent =
+          `${incomplete.length} incomplete task${incomplete.length > 1 ? 's' : ''} from yesterday`;
+        banner.classList.add('visible');
+      }
+    }
+    Storage.set('myDay_lastDate', today);
+    lastSavedDate = today;
   }
 
-  function toggleSound() {
-    soundEnabled = !soundEnabled;
-    localStorage.setItem('myDay_sound', soundEnabled);
-    const btn = document.getElementById('sound-btn');
-    btn.textContent = soundEnabled ? '🔊' : '🔇';
-    btn.classList.toggle('muted', !soundEnabled);
-    if (soundEnabled) playPop();
+  function carryOver() {
+    tasks.forEach(t => { if (!t.done) t.carriedOver = true; });
+    save(); render();
+    document.getElementById('carry-banner').classList.remove('visible');
+  }
+  function dismissCarry() {
+    document.getElementById('carry-banner').classList.remove('visible');
   }
 
-  document.getElementById('sound-btn').textContent = soundEnabled ? '🔊' : '🔇';
-  document.getElementById('sound-btn').classList.toggle('muted', !soundEnabled);
-
-  function envelope(gainNode, ctx, { attack = 0.005, sustain = 0.12, release = 0.18, peak = 0.35 } = {}) {
-    const t = ctx.currentTime;
-    gainNode.gain.setValueAtTime(0, t);
-    gainNode.gain.linearRampToValueAtTime(peak, t + attack);
-    gainNode.gain.setValueAtTime(peak, t + attack + sustain);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, t + attack + sustain + release);
-  }
-
-  function playPop() {
-    if (!soundEnabled) return;
-    const ctx = getCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(600, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.06);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    envelope(gain, ctx, { attack: 0.003, sustain: 0.01, release: 0.06, peak: 0.22 });
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.1);
-    const bufSize = ctx.sampleRate * 0.04;
-    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufSize);
-    const noise = ctx.createBufferSource();
-    noise.buffer = buf;
-    const nGain = ctx.createGain();
-    nGain.gain.setValueAtTime(0.08, ctx.currentTime);
-    nGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
-    noise.connect(nGain);
-    nGain.connect(ctx.destination);
-    noise.start(ctx.currentTime);
-  }
-
-  function playDing(isDone) {
-    if (!soundEnabled) return;
-    const ctx = getCtx();
-    const freqs = isDone ? [880, 1320] : [660, 990];
-    freqs.forEach((freq, i) => {
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, ctx.currentTime);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      const delay = i * 0.04;
-      const t = ctx.currentTime + delay;
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(0.28 - i * 0.08, t + 0.006);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
-      osc.start(t);
-      osc.stop(t + 0.65);
+  /* ── Priority ── */
+  function selectPriority(p) {
+    selectedPriority = p;
+    document.querySelectorAll('.priority-btn').forEach(btn => {
+      btn.className = 'priority-btn';
+      const active = btn.dataset.p === p;
+      if (active) btn.classList.add('active-' + p);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
   }
 
-  function playWhoosh() {
-    if (!soundEnabled) return;
-    const ctx = getCtx();
-    const bufSize = ctx.sampleRate * 0.25;
-    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-    const noise = ctx.createBufferSource();
-    noise.buffer = buf;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(1800, ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.22);
-    filter.Q.value = 1.2;
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.18, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    noise.start(ctx.currentTime);
-  }
-
-  function playUndo() {
-    if (!soundEnabled) return;
-    const ctx = getCtx();
-    const bufSize = ctx.sampleRate * 0.22;
-    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-    const noise = ctx.createBufferSource();
-    noise.buffer = buf;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(200, ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(1600, ctx.currentTime + 0.2);
-    filter.Q.value = 1.2;
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.16, ctx.currentTime + 0.1);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-   
+  /* ── Filter ── */
+  function setFilter(f) {
+    activeFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      const active = btn.dataset.f === f;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    render();
+  
