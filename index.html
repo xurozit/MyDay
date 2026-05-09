@@ -555,33 +555,24 @@
     var h    = String(hrs % 12 || 12).padStart(2, '0');
     var m    = String(now.getMinutes()).padStart(2, '0');
     var secs = now.getSeconds();
+    var s    = String(secs).padStart(2, '0');
     var ampm = hrs >= 12 ? 'PM' : 'AM';
-    document.getElementById('clock-time').textContent = h + ':' + m + ':' + secs.toString().padStart(2,'0') + ' ' + ampm;
+    document.getElementById('clock-time').textContent = h + ':' + m + ':' + s + ' ' + ampm;
     document.getElementById('seconds-bar').style.width = ((secs / 60) * 100) + '%';
 
-    var W = window.innerWidth;
-    var H = window.innerHeight;
+    var W  = window.innerWidth;
+    var H  = window.innerHeight;
     var mx = W / 2;
-
-    // Path starts at top-middle, goes clockwise:
-    // top-middle → top-right → bottom-right → bottom-left → top-left → top-middle
-  var d = [
-    'M', mx, 0,
-    'L', W, 0,
-    'L', W, H,
-    'L', 0, H,
-    'L', 0, 0,
-    'L', mx, 0
-  ].join(' ');
+    var d  = ['M', mx, 0, 'L', W, 0, 'L', W, H, 'L', 0, H, 'L', 0, 0, 'L', mx, 0].join(' ');
 
     var path = document.getElementById('border-path');
     path.setAttribute('d', d);
+    path.setAttribute('width',  W);
+    path.setAttribute('height', H);
 
     var totalLen = path.getTotalLength();
-    var progress = secs / 60;
-    var drawn = totalLen * progress;
-
-    path.style.strokeDasharray = totalLen;
+    var drawn    = totalLen * (secs / 60);
+    path.style.strokeDasharray  = totalLen;
     path.style.strokeDashoffset = totalLen - drawn;
   }
   updateClock();
