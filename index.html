@@ -366,6 +366,12 @@
     height: 100%;
     overflow: visible;
   }
+  .screen-border-bar svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    display: block;
+  }
 </style>
 </head>
 <body>
@@ -575,6 +581,13 @@
     path.style.strokeDasharray  = totalLen;
     path.style.strokeDashoffset = totalLen - drawn;
   }
+  // Force SVG dimensions on load first
+  var _path = document.getElementById('border-path');
+  var _W = window.innerWidth;
+  var _H = window.innerHeight;
+  var _mx = _W / 2;
+  _path.setAttribute('d', ['M', _mx, 0, 'L', _W, 0, 'L', _W, _H, 'L', 0, _H, 'L', 0, 0, 'L', _mx, 0].join(' '));
+
   updateClock();
   setInterval(updateClock, 1000);
 </script>
