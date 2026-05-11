@@ -376,6 +376,105 @@
     pointer-events: none;
     z-index: 1;
   }
+  .app-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 3px;
+    width: fit-content;
+  }
+  .app-tab {
+    padding: 5px 18px;
+    border-radius: 99px;
+    border: none;
+    background: transparent;
+    color: var(--text-3);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(.34,1.56,.64,1);
+  }
+  .app-tab.active { background: var(--text); color: #f7f5f1; }
+  .notes-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0 0.75rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.5rem;
+  }
+  .notes-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-3);
+  }
+  .note-card {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+    animation: fadeUp 0.2s ease both;
+  }
+  .note-card:last-child { border-bottom: none; }
+  .note-card:hover { background: var(--surface-2); border-radius: var(--radius-sm); }
+  .note-card-title {
+    font-size: 0.91rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .note-card-preview {
+    font-size: 0.76rem;
+    color: var(--text-3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .note-card-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-3);
+    margin-top: 4px;
+  }
+  .note-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0 0.75rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.75rem;
+  }
+  #note-title-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    outline: none;
+    margin-bottom: 0.5rem;
+    padding: 0;
+  }
+  #note-title-input::placeholder { color: var(--text-3); }
+  #note-body-input {
+    width: 100%;
+    min-height: 220px;
+    border: none;
+    background: transparent;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem;
+    color: var(--text);
+    outline: none;
+    resize: none;
+    line-height: 1.6;
+    padding: 0;
+  }
+  #note-body-input::placeholder { color: var(--text-3); }
 </style>
 </head>
 <body>
@@ -408,13 +507,36 @@
   <div class="kbd-strip">
     <kbd>Enter</kbd> add &nbsp;&#183;&nbsp; <kbd>Alt 1/2/3</kbd> priority
   </div>
-  <div class="divider"></div>
-  <div class="filters">
-    <button class="filter-btn active" data-f="all"    onclick="playClick(); setFilter('all')">All <span id="cnt-all"></span></button>
-    <button class="filter-btn"        data-f="active" onclick="playClick(); setFilter('active')">Active <span id="cnt-active"></span></button>
-    <button class="filter-btn"        data-f="done"   onclick="playClick(); setFilter('done')">Done <span id="cnt-done"></span></button>
+  <div class="app-tabs">
+    <button class="app-tab active" onclick="playClick(); switchApp('tasks')">Tasks</button>
+    <button class="app-tab"        onclick="playClick(); switchApp('notes')">Notes</button>
   </div>
-  <ul id="task-list"></ul>
+  <div id="tasks-view">
+    <div class="divider"></div>
+    <div class="filters">
+      <button class="filter-btn active" data-f="all"    onclick="playClick(); setFilter('all')">All <span id="cnt-all"></span></button>
+      <button class="filter-btn"        data-f="active" onclick="playClick(); setFilter('active')">Active <span id="cnt-active"></span></button>
+      <button class="filter-btn"        data-f="done"   onclick="playClick(); setFilter('done')">Done <span id="cnt-done"></span></button>
+    </div>
+    <ul id="task-list"></ul>
+  </div>
+  <div id="notes-view" style="display:none;">
+    <div id="notes-list-view">
+      <div class="notes-toolbar">
+        <span class="notes-count" id="notes-count"></span>
+        <button class="ghost-btn" onclick="playClick(); newNote()">+ New note</button>
+      </div>
+      <div id="notes-list"></div>
+    </div>
+    <div id="note-editor-view" style="display:none;">
+      <div class="note-editor-header">
+        <button class="ghost-btn" onclick="playClick(); closeEditor()">← Back</button>
+        <button class="ghost-btn danger" onclick="playClick(); deleteCurrentNote()">Delete</button>
+      </div>
+      <input type="text" id="note-title-input" placeholder="Note title..." maxlength="60" autocomplete="off">
+      <textarea id="note-body-input" placeholder="Start writing..."></textarea>
+    </div>
+  </div>
   <div class="footer-row">
     <span class="task-counter" id="task-counter"></span>
     <div class="footer-actions">
@@ -648,6 +770,93 @@
   }
   updateClock();
   setInterval(updateClock, 1000);
+    // ── Notes state ─────────────────────────────────────────────────────────
+  var notes = JSON.parse(localStorage.getItem('myDay_notes') || '[]');
+  var currentNoteId = null;
+  var activeApp = 'tasks';
+
+  function saveNotes() { localStorage.setItem('myDay_notes', JSON.stringify(notes)); }
+
+  function switchApp(app) {
+    activeApp = app;
+    document.querySelectorAll('.app-tab').forEach(function(btn) {
+      btn.classList.toggle('active', btn.getAttribute('onclick').includes("'" + app + "'"));
+    });
+    document.getElementById('tasks-view').style.display = app === 'tasks' ? '' : 'none';
+    document.getElementById('notes-view').style.display = app === 'notes' ? '' : 'none';
+    document.getElementById('footer-row') && (document.querySelector('.footer-row').style.display = app === 'tasks' ? '' : 'none');
+    document.querySelector('.footer-row').style.display = app === 'tasks' ? '' : 'none';
+    document.querySelector('.toolbar').style.display = app === 'tasks' ? '' : 'none';
+    document.querySelector('.input-wrap').style.display = app === 'tasks' ? '' : 'none';
+    if (app === 'notes') renderNotes();
+  }
+
+  function newNote() {
+    var note = { id: Date.now(), title: '', body: '', updated: Date.now() };
+    notes.unshift(note);
+    saveNotes();
+    openNote(note.id);
+  }
+
+  function openNote(id) {
+    currentNoteId = id;
+    var note = notes.find(function(n) { return n.id === id; });
+    if (!note) return;
+    document.getElementById('note-title-input').value = note.title;
+    document.getElementById('note-body-input').value = note.body;
+    document.getElementById('notes-list-view').style.display = 'none';
+    document.getElementById('note-editor-view').style.display = '';
+    document.getElementById('note-title-input').focus();
+  }
+
+  function closeEditor() {
+    var note = notes.find(function(n) { return n.id === currentNoteId; });
+    if (note) {
+      note.title = document.getElementById('note-title-input').value.trim();
+      note.body  = document.getElementById('note-body-input').value.trim();
+      note.updated = Date.now();
+      if (!note.title && !note.body) {
+        notes = notes.filter(function(n) { return n.id !== currentNoteId; });
+      }
+      saveNotes();
+    }
+    currentNoteId = null;
+    document.getElementById('note-editor-view').style.display = 'none';
+    document.getElementById('notes-list-view').style.display = '';
+    renderNotes();
+  }
+
+  function deleteCurrentNote() {
+    notes = notes.filter(function(n) { return n.id !== currentNoteId; });
+    saveNotes();
+    currentNoteId = null;
+    document.getElementById('note-editor-view').style.display = 'none';
+    document.getElementById('notes-list-view').style.display = '';
+    renderNotes();
+  }
+
+  function renderNotes() {
+    var list = document.getElementById('notes-list');
+    var count = document.getElementById('notes-count');
+    count.textContent = notes.length ? notes.length + ' note' + (notes.length === 1 ? '' : 's') : '';
+    if (notes.length === 0) {
+      list.innerHTML = '<div class="empty-state"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><div>No notes yet.</div></div>';
+      return;
+    }
+    list.innerHTML = '';
+    notes.forEach(function(note) {
+      var card = document.createElement('div');
+      card.className = 'note-card';
+      card.onclick = function() { playClick(); openNote(note.id); };
+      var d = new Date(note.updated);
+      var dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      card.innerHTML =
+        '<div class="note-card-title">' + esc(note.title || 'Untitled') + '</div>' +
+        '<div class="note-card-preview">' + esc(note.body || 'No content') + '</div>' +
+        '<div class="note-card-date">' + dateStr + '</div>';
+      list.appendChild(card);
+    });
+  }
 </script>
 <div class="footer-credit">© 2026 Surajit Laskar</div>
   <div id="stats-bar" style="
