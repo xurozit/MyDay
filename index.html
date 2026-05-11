@@ -213,6 +213,7 @@
   }
   li:last-child { border-bottom: none; }
   li:hover { background: var(--surface-2); border-radius: var(--radius-sm); }
+  li.drag-over { border-top: 2px solid var(--accent); }
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(4px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -365,7 +366,7 @@
   .toast-undo:hover { background: rgba(255,255,255,0.1); }
   .footer-credit {
     position: fixed;
-    bottom: 0.75rem;
+    bottom: 1.5rem;
     width: 100%;
     text-align: center;
     font-family: 'IBM Plex Mono', monospace;
@@ -442,7 +443,8 @@
   var deletedTask      = null;
   var deletedIndex     = null;
   var toastTimer       = null;
-  var priorityOrder = { high: 0, mid: 1, low: 2 };
+  var priorityOrder    = { high: 0, mid: 1, low: 2 };
+  var dragSrcId        = null;
   function save() { localStorage.setItem('myDay_tasks', JSON.stringify(tasks)); }
   function selectPriority(p) {
     selectedPriority = p;
@@ -481,8 +483,41 @@
     li.classList.add('completing');
     setTimeout(function() {
       var t = tasks.find(function(t) { return t.id === id; });
-      if (t) { t.done = !t.done; save(); render(); }
+      if (t) {
+        t.done = !t.done;
+        if (t.done) trackCompletion();
+        save(); render();
+      }
     }, 200);
+  }
+  function editTask(id, el) {
+    var t = tasks.find(function(t) { return t.id === id; });
+    if (!t || t.done) return;
+    var prev = t.text;
+    el.contentEditable = 'true';
+    el.focus();
+    var range = document.createRange();
+    range.selectNodeContents(el);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    el.style.outline = 'none';
+    el.style.borderBottom = '1.5px solid var(--accent)';
+    el.style.paddingBottom = '1px';
+    function finish(cancel) {
+      el.contentEditable = 'false';
+      el.style.borderBottom = '';
+      el.style.paddingBottom = '';
+      var newText = el.textContent.trim();
+      if (cancel || !newText) { el.textContent = prev; return; }
+      t.text = newText;
+      save();
+    }
+    el.onblur = function() { finish(false); };
+    el.onkeydown = function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); finish(false); }
+      if (e.key === 'Escape') { finish(true); }
+    };
   }
   function deleteTask(id, e) {
     e.stopPropagation();
@@ -493,6 +528,30 @@
     deletedIndex = idx;
     tasks.splice(idx, 1);
     save(); render(); showToast();
+  }
+  function reorderTask(srcId, targetId) {
+    if (srcId === targetId) return;
+    var srcIdx    = tasks.findIndex(function(t) { return t.id === srcId; });
+    var targetIdx = tasks.findIndex(function(t) { return t.id === targetId; });
+    if (srcIdx === -1 || targetIdx === -1) return;
+    var moved = tasks.splice(srcIdx, 1)[0];
+    tasks.splice(targetIdx, 0, moved);
+    save(); render();
+  }
+  function trackCompletion() {
+    var stats = JSON.parse(localStorage.getItem('myDay_stats') || '{}');
+    var today = new Date().toISOString().slice(0, 10);
+    stats[today] = (stats[today] || 0) + 1;
+    localStorage.setItem('myDay_stats', JSON.stringify(stats));
+  }
+
+  function getStats() {
+    var stats = JSON.parse(localStorage.getItem('myDay_stats') || '{}');
+    var today = new Date().toISOString().slice(0, 10);
+    var todayCount = stats[today] || 0;
+    var total = Object.values(stats).reduce(function(a, b) { return a + b; }, 0);
+    var days = Object.keys(stats).length;
+    return { today: todayCount, total: total, days: days };
   }
   function undoDelete() {
     if (!deletedTask) return;
@@ -539,16 +598,29 @@
       li.dataset.id = task.id;
       li.dataset.p  = task.priority;
       if (task.done) li.classList.add('done');
+      li.draggable = true;
       li.onclick = function() { toggleTask(task.id); };
+      li.ondragstart = function() { li.classList.add('dragging'); dragSrcId = task.id; };
+      li.ondragend = function() { li.classList.remove('dragging'); document.querySelectorAll('li.drag-over').forEach(function(el) { el.classList.remove('drag-over'); }); };
+      li.ondragover = function(e) { e.preventDefault(); document.querySelectorAll('li.drag-over').forEach(function(el) { el.classList.remove('drag-over'); }); li.classList.add('drag-over'); };
+      li.ondrop = function(e) { e.preventDefault(); reorderTask(dragSrcId, task.id); };
       var timeHtml = task.time ? '<span class="task-time">' + task.time + '</span>' : '';
       li.innerHTML =
         '<div class="check-circle"></div>' +
         '<div class="p-dot ' + task.priority + '"></div>' +
-        '<span class="task-text">' + esc(task.text) + '</span>' +
+        '<span class="task-text" ondblclick="editTask(' + task.id + ',this)">' + esc(task.text) + '</span>' +
         timeHtml +
         '<button class="delete-btn" onclick="deleteTask(' + task.id + ',event)" title="Delete">&#x2715;</button>';
       list.appendChild(li);
     });
+    updateStats();
+  }
+  function updateStats() {
+    var s = getStats();
+    var el = document.getElementById('stats-bar');
+    if (!el) return;
+    if (s.total === 0) { el.textContent = ''; return; }
+    el.textContent = s.today + ' done today · ' + s.total + ' total across ' + s.days + ' day' + (s.days === 1 ? '' : 's');
   }
   function setDate() {
     var d = new Date();
@@ -578,5 +650,16 @@
   setInterval(updateClock, 1000);
 </script>
 <div class="footer-credit">© 2026 Surajit Laskar</div>
+  <div id="stats-bar" style="
+    text-align:center;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.68rem;
+    color:#4a4a4a;
+    position:fixed;
+    bottom:0.25rem;
+    width:100%;
+    pointer-events:none;
+    z-index:1;
+  "></div>
 </body>
 </html>
