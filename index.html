@@ -139,21 +139,32 @@
     gap: 5px;
     margin-bottom: 1.5rem;
   }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 3px;
+    width: fit-content;
+  }
   .priority-btn {
     padding: 5px 13px;
     border-radius: 99px;
-    border: 1.5px solid var(--border);
+    border: none;
     background: transparent;
     color: var(--text-3);
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.74rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.2s cubic-bezier(.34,1.56,.64,1);
   }
-  .priority-btn.active-low  { border-color: var(--low);  color: var(--low);  background: #d8f3dc55; }
-  .priority-btn.active-mid  { border-color: var(--mid);  color: var(--mid);  background: #fef3c755; }
-  .priority-btn.active-high { border-color: var(--high); color: var(--high); background: #fee2e255; }
+  .priority-btn.active-low  { background: var(--low);  color: #fff; box-shadow: 0 2px 8px rgba(45,106,79,0.25); }
+  .priority-btn.active-mid  { background: var(--mid);  color: #fff; box-shadow: 0 2px 8px rgba(161,98,7,0.25); }
+  .priority-btn.active-high { background: var(--high); color: #fff; box-shadow: 0 2px 8px rgba(185,28,28,0.25); }
   .time-pill { display: none; }
   .kbd-strip  { display: none; }
   input[type="time"] {
