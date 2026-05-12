@@ -479,6 +479,10 @@
 </head>
 <body>
 <div class="container">
+  <div class="app-tabs" style="margin-bottom: 1rem;">
+    <button class="app-tab active" onclick="playClick(); switchApp('tasks')">Tasks</button>
+    <button class="app-tab"        onclick="playClick(); switchApp('notes')">Notes</button>
+  </div>
   <div class="header">
     <div class="header-left">
       <h1>ফালুদা দৌৰ</h1>
@@ -506,10 +510,6 @@
   </div>
   <div class="kbd-strip">
     <kbd>Enter</kbd> add &nbsp;&#183;&nbsp; <kbd>Alt 1/2/3</kbd> priority
-  </div>
-  <div class="app-tabs">
-    <button class="app-tab active" onclick="playClick(); switchApp('tasks')">Tasks</button>
-    <button class="app-tab"        onclick="playClick(); switchApp('notes')">Notes</button>
   </div>
   <div id="tasks-view">
     <div class="divider"></div>
