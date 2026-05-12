@@ -786,15 +786,9 @@
     });
     document.getElementById('tasks-view').style.display = app === 'tasks' ? '' : 'none';
     document.getElementById('notes-view').style.display = app === 'notes' ? '' : 'none';
-    document.getElementById('footer-row') && (document.querySelector('.footer-row').style.display = app === 'tasks' ? '' : 'none');
-    document.querySelector('.footer-row').style.visibility = app === 'tasks' ? '' : 'hidden';
-    document.querySelector('.footer-row').style.height = app === 'tasks' ? '' : '0';
-    document.querySelector('.toolbar').style.visibility = app === 'tasks' ? '' : 'hidden';
-    document.querySelector('.toolbar').style.height = app === 'tasks' ? '' : '0';
-    document.querySelector('.toolbar').style.marginBottom = app === 'tasks' ? '' : '0';
-    document.querySelector('.input-wrap').style.visibility = app === 'tasks' ? '' : 'hidden';
-    document.querySelector('.input-wrap').style.height = app === 'tasks' ? '' : '0';
-    document.querySelector('.input-wrap').style.marginBottom = app === 'tasks' ? '' : '0';
+    document.querySelector('.footer-row').style.display = app === 'tasks' ? '' : 'none';
+    document.querySelector('.toolbar').style.display = app === 'tasks' ? '' : 'none';
+    document.querySelector('.input-wrap').style.display = app === 'tasks' ? '' : 'none';
     if (app === 'notes') renderNotes();
   }
 
