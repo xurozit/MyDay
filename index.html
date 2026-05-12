@@ -521,10 +521,12 @@
     <ul id="task-list"></ul>
   </div>
   <div id="notes-view" style="display:none;">
-    <div id="notes-list-view">
+<div id="notes-list-view">
+      <div class="input-wrap" style="margin-bottom: 0.75rem;">
+        <button style="width:100%; padding: 13px 16px; border-radius: var(--radius); border: 1.5px solid var(--border); background: #fff; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: var(--text-3); text-align: left; cursor: pointer;" onclick="playClick(); newNote()">+ New note...</button>
+      </div>
       <div class="notes-toolbar">
         <span class="notes-count" id="notes-count"></span>
-        <button class="ghost-btn" onclick="playClick(); newNote()">+ New note</button>
       </div>
       <div id="notes-list"></div>
     </div>
