@@ -565,6 +565,21 @@ body {
 </div>
 
 <script>
+var sfx = {
+  tab: function() {},
+  add: function() {},
+  complete: function() {},
+  filter: function() {},
+  delete: function() {},
+  undo: function() {},
+  sweep: function() {},
+  back: function() {},
+  noteNew: function() {},
+  noteOpen: function() {},
+  priorityLow: function() {},
+  priorityMid: function() {},
+  priorityHigh: function() {}
+};
 // ── App state ───────────────────────────────────────────────────────────
 var tasks            = JSON.parse(localStorage.getItem('myDay_tasks') || '[]');
 var selectedPriority = 'low';
