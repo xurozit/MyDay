@@ -9,7 +9,7 @@
 <style>
   :root {
     --bg:         #1a1c1e;
-    --surface:    #f7f5f1;
+    --surface:    #f5f0e8;
     --surface-2:  #eae7e0;
     --border:     #dedad2;
     --text:       #1A2028;
@@ -24,26 +24,25 @@
     --radius-sm:  9px;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  .bauhaus-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
-  .bauhaus-bg div { position: absolute; }
   .container { position: relative; z-index: 1; }
-body {
+  body {
     font-family: 'JetBrains Mono', monospace;
-    background: linear-gradient(135deg, #0d0a1e 0%, #1a0a18 50%, #1e0a0f 100%);
+    background: #f5f0e8;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding: 3rem 1rem 5rem;
+    padding: 0;
   }
   .container {
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 2.25rem 1.75rem 1.5rem;
     width: 100%;
-    max-width: 440px;
-    box-shadow: 0 4px 24px rgba(26,32,40,0.07);
+    max-width: 100%;
+    min-height: 100vh;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    padding: 2.25rem 1.75rem 1.5rem;
   }
   .header {
     margin-bottom: 2rem;
@@ -122,18 +121,15 @@ body {
     transform: translateY(-50%);
     width: 34px;
     height: 34px;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    background: rgba(26,32,40,0.08);
     color: var(--text);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 1px solid var(--border);
     border-radius: 10px;
     font-size: 1.25rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(26,32,40,0.12), inset 0 1px 0 rgba(255,255,255,0.5);
     transition: opacity 0.15s, transform 0.15s;
   }
   .add-btn:hover { transform: translateY(-50%) scale(1.06); opacity: 0.9; }
@@ -197,7 +193,7 @@ body {
   .filter-btn.active { color: var(--text); font-weight: 700; border-bottom-color: var(--text); }
   ul {
     list-style: none;
-    max-height: calc(100vh - 480px);
+    max-height: calc(100vh - 420px);
     min-height: 60px;
     overflow-y: auto;
     margin-top: 0.25rem;
@@ -373,7 +369,7 @@ body {
     text-align: center;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.7rem;
-    color: #4a4a4a;
+    color: var(--text-3);
     letter-spacing: 0.02em;
     pointer-events: none;
     z-index: 1;
@@ -477,19 +473,29 @@ body {
     padding: 0;
   }
   #note-body-input::placeholder { color: var(--text-3); }
+
+  /* ── Desktop: max-width centered layout ── */
+  @media (min-width: 600px) {
+    body { padding: 3rem 1rem 5rem; background: #ede8df; }
+    .container {
+      max-width: 440px;
+      min-height: unset;
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 24px rgba(26,32,40,0.07);
+    }
+    ul { max-height: calc(100vh - 480px); }
+  }
 </style>
 </head>
 <body>
-<div class="bauhaus-bg">
-  <div style="width:320px;height:320px;border-radius:50%;background:#1a3a8f;opacity:0.18;top:-100px;left:-80px;"></div>
-  <div style="width:180px;height:180px;background:#c41230;opacity:0.22;top:60px;right:-40px;"></div>
-  <div style="width:260px;height:80px;background:#e8a000;opacity:0.20;top:280px;left:-60px;"></div>
-  <div style="width:140px;height:140px;border-radius:50%;background:#c41230;opacity:0.15;bottom:200px;right:-30px;"></div>
-  <div style="width:200px;height:4px;background:#1a3a8f;opacity:0.30;bottom:320px;left:0;right:0;margin:auto;"></div>
-  <div style="width:4px;height:260px;background:#e8a000;opacity:0.25;bottom:100px;right:120px;"></div>
-  <div style="width:160px;height:160px;background:#1a3a8f;opacity:0.15;bottom:-40px;left:30px;clip-path:polygon(50% 0%, 100% 100%, 0% 100%);"></div>
-  <div style="width:100px;height:100px;border-radius:50% 0 0 0;background:#c41230;opacity:0.20;bottom:80px;right:20px;transform:rotate(45deg);"></div>
-</div>
+<svg style="position:fixed;width:0;height:0">
+  <filter id="noise">
+    <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+</svg>
+<div style="position:fixed;inset:0;filter:url(#noise);opacity:0.08;pointer-events:none;z-index:0;background:#fff;"></div>
 <div class="container">
   <div class="app-tabs" style="margin-bottom: 1rem;">
     <button class="app-tab active" onclick="sfx.tab(); switchApp('tasks')">Tasks</button>
@@ -580,7 +586,6 @@ var sfx = {
   priorityMid: function() {},
   priorityHigh: function() {}
 };
-// ── App state ───────────────────────────────────────────────────────────
 var tasks            = JSON.parse(localStorage.getItem('myDay_tasks') || '[]');
 var selectedPriority = 'low';
 var activeFilter     = 'all';
@@ -814,7 +819,6 @@ function updateClock() {
 updateClock();
 setInterval(updateClock, 1000);
 
-// ── Notes state ─────────────────────────────────────────────────────────
 var notes = JSON.parse(localStorage.getItem('myDay_notes') || '[]');
 var currentNoteId = null;
 var activeApp = 'tasks';
@@ -907,7 +911,7 @@ function renderNotes() {
   text-align:center;
   font-family:'IBM Plex Mono',monospace;
   font-size:0.68rem;
-  color:#4a4a4a;
+  color:#a09890;
   position:fixed;
   bottom:0.25rem;
   width:100%;
