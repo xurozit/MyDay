@@ -508,7 +508,7 @@
   .cat-btn.active-work     { background: var(--cat-work);     color: #fff; }
   .cat-btn.active-personal { background: var(--cat-personal); color: #fff; }
   .cat-btn.active-ideas    { background: var(--cat-ideas);    color: #fff; }
-
+  .cat-btn.active-selected { background: var(--text); color: #f7f5f1; border-color: var(--text); }
   #note-title-input {
     width: 100%;
     border: none;
@@ -932,7 +932,7 @@ function selectColor(color) {
   var note = notes.find(function(n){ return n.id === currentNoteId; });
   if (note) { note.color = color; saveNotes(); }
   document.querySelectorAll('.cat-btn').forEach(function(btn) {
-    btn.classList.toggle('active-work', btn.dataset.color === color);
+    btn.classList.toggle('active-selected', btn.dataset.color === color);
   });
 }
 
@@ -951,7 +951,7 @@ function openNote(id) {
   document.getElementById('note-body-input').value  = note.body;
   // Set category toolbar
   document.querySelectorAll('.cat-btn').forEach(function(btn) {
-      btn.classList.toggle('active-work', btn.dataset.color === (note.color || 'default'));
+      btn.classList.toggle('active-selected', btn.dataset.color === (note.color || 'default'));
   });
   // Set archive toggle label
   document.getElementById('archive-toggle-btn').textContent = note.archived ? 'Unarchive' : 'Archive';
