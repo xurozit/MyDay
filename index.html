@@ -439,18 +439,6 @@
   }
   .note-row.archived .archive-circle { background: var(--text-3); border-color: var(--text-3); }
   .note-row.archived .archive-circle::after { opacity: 1; transform: translate(-50%,-62%) rotate(45deg) scale(1); }
-  .archive-circle::after {
-    content: '';
-    position: absolute;
-    top: 50%; left: 50%;
-    width: 4px; height: 8px;
-    border-right: 2px solid #fff;
-    border-bottom: 2px solid #fff;
-    transform: translate(-50%,-62%) rotate(45deg) scale(0);
-    opacity: 0;
-    transition: opacity 0.18s cubic-bezier(0.4,0,0.2,1), transform 0.18s cubic-bezier(0.4,0,0.2,1);
-  }
-
   .note-row-title {
     flex: 1;
     font-size: 0.91rem;
