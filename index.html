@@ -387,58 +387,24 @@
      NOTES — redesigned to match Tasks
   ══════════════════════════════════════ */
 
-  /* Category tag pill (shown on cards) */
-  .cat-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 7px;
-    border-radius: 99px;
-    font-size: 0.65rem;
-    font-weight: 600;
-    font-family: 'IBM Plex Mono', monospace;
-    letter-spacing: 0.02em;
-    flex-shrink: 0;
-  }
-  .cat-pill.work     { background: rgba(58,90,138,0.12); color: var(--cat-work); }
-  .cat-pill.personal { background: rgba(122,64,112,0.12); color: var(--cat-personal); }
-  .cat-pill.ideas    { background: rgba(90,106,42,0.12);  color: var(--cat-ideas); }
-
-  /* Category dot (same size as p-dot) */
-  .cat-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-  .cat-dot.work     { background: var(--cat-work); }
-  .cat-dot.personal { background: var(--cat-personal); }
-  .cat-dot.ideas    { background: var(--cat-ideas); }
-
   /* Note rows — identical rhythm to task rows */
   .note-row {
     display: flex;
     align-items: center;
     gap: 11px;
-    padding: 13px 0;
-    border-bottom: 1px solid var(--border);
+    padding: 13px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    margin-bottom: 4px;
     cursor: pointer;
     animation: fadeUp 0.2s ease both;
     transition: opacity 0.18s, background 0.15s;
   }
-  .note-row:last-child { border-bottom: none; }
   .note-row:hover { background: var(--surface-2); border-radius: var(--radius-sm); }
+  .note-row.color-yellow { background: #fffbe6; border-color: #e0d8b0; }
+  .note-row.color-teal   { background: #e8f5f0; border-color: #b8ddd4; }
+  .note-row.color-rose   { background: #fdf0ee; border-color: #e8c8c4; }
   .note-row.archived { opacity: 0.42; }
-  .note-row.archived .note-row-title { text-decoration: line-through; color: var(--text-3); }
-
-  /* Archive circle — mirrors check-circle */
-  .archive-circle {
-    width: 19px;
-    height: 19px;
-    border-radius: 7px;
-    border: 1.5px solid var(--border);
-    flex-shrink: 0;
-    position: relative;
-    transition: background 0.2s, border-color 0.2s;
-    cursor: pointer;
-  }
-  .note-row.archived .archive-circle { background: var(--text-3); border-color: var(--text-3); }
-  .note-row.archived .archive-circle::after { opacity: 1; transform: translate(-50%,-62%) rotate(45deg) scale(1); }
   .note-row-title {
     flex: 1;
     font-size: 0.91rem;
@@ -727,9 +693,10 @@
       </div>
       <!-- Category toolbar — mirrors priority toolbar -->
       <div class="cat-toolbar">
-        <button class="cat-btn" data-cat="work"     onclick="selectCategory('work')">Work</button>
-        <button class="cat-btn" data-cat="personal" onclick="selectCategory('personal')">Personal</button>
-        <button class="cat-btn" data-cat="ideas"    onclick="selectCategory('ideas')">Ideas</button>
+        <button class="cat-btn" data-color="default" onclick="selectColor('default')">None</button>
+        <button class="cat-btn" data-color="yellow"  onclick="selectColor('yellow')"  style="background:#fffbe6;color:#7a6020;">Yellow</button>
+        <button class="cat-btn" data-color="teal"    onclick="selectColor('teal')"    style="background:#e8f5f0;color:#2a5040;">Teal</button>
+        <button class="cat-btn" data-color="rose"    onclick="selectColor('rose')"    style="background:#fdf0ee;color:#8a3a3a;">Rose</button>
       </div>
       <input type="text" id="note-title-input" placeholder="Note title..." maxlength="60" autocomplete="off">
       <textarea id="note-body-input" placeholder="Start writing..."></textarea>
@@ -943,7 +910,6 @@ function updateStats() {
 var notes         = JSON.parse(localStorage.getItem('myDay_notes') || '[]');
 var currentNoteId = null;
 var noteFilter    = 'all';
-var editorDirty   = false;
 
 // Migrate old notes that lack category/archived fields
 notes = notes.map(function(n) {
@@ -962,12 +928,11 @@ function setNoteFilter(f) {
   renderNotes();
 }
 
-function selectCategory(cat) {
+function selectColor(color) {
   var note = notes.find(function(n){ return n.id === currentNoteId; });
-  if (note) { note.category = cat; saveNotes(); }
+  if (note) { note.color = color; saveNotes(); }
   document.querySelectorAll('.cat-btn').forEach(function(btn) {
-    btn.className = 'cat-btn';
-    if (btn.dataset.cat === cat) btn.classList.add('active-' + cat);
+    btn.classList.toggle('active-work', btn.dataset.color === color);
   });
 }
 
@@ -986,8 +951,7 @@ function openNote(id) {
   document.getElementById('note-body-input').value  = note.body;
   // Set category toolbar
   document.querySelectorAll('.cat-btn').forEach(function(btn) {
-    btn.className = 'cat-btn';
-    if (btn.dataset.cat === note.category) btn.classList.add('active-' + note.category);
+      btn.classList.toggle('active-work', btn.dataset.color === (note.color || 'default'));
   });
   // Set archive toggle label
   document.getElementById('archive-toggle-btn').textContent = note.archived ? 'Unarchive' : 'Archive';
@@ -1065,14 +1029,8 @@ function renderNotes() {
 
   visible.forEach(function(note) {
     var row = document.createElement('div');
-    row.className = 'note-row' + (note.archived ? ' archived' : '');
-
-    var catColors = { work: 'var(--cat-work)', personal: 'var(--cat-personal)', ideas: 'var(--cat-ideas)' };
-    var catLabels = { work: 'Work', personal: 'Personal', ideas: 'Ideas' };
-
+    row.className = 'note-row color-' + (note.color || 'default') + (note.archived ? ' archived' : '');
     row.innerHTML =
-      '<div class="archive-circle" onclick="toggleArchiveRow('+note.id+',event)" title="'+(note.archived?'Unarchive':'Archive')+'"></div>' +
-      '<div class="cat-dot '+note.category+'"></div>' +
       '<span class="note-row-title">'+esc(note.title || 'Untitled')+'</span>' +
       '<span class="note-row-preview">'+esc(note.body || '')+'</span>' +
       '<button class="note-delete-btn" onclick="deleteNoteRow('+note.id+',event)" title="Delete">&#x2715;</button>';
@@ -1083,16 +1041,6 @@ function renderNotes() {
     };
     list.appendChild(row);
   });
-}
-
-function toggleArchiveRow(id, e) {
-  e.stopPropagation();
-  var note = notes.find(function(n){ return n.id === id; });
-  if (!note) return;
-  note.archived = !note.archived;
-  note.updated  = Date.now();
-  saveNotes();
-  renderNotes();
 }
 
 function deleteNoteRow(id, e) {
