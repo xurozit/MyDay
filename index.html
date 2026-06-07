@@ -20,11 +20,13 @@
     --high:       #8a3a3a;
     --mid:        #7a6020;
     --low:        #2a5040;
+    --cat-work:     #3a5a8a;
+    --cat-personal: #7a4070;
+    --cat-ideas:    #5a6a2a;
     --radius:     16px;
     --radius-sm:  9px;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  .container { position: relative; z-index: 1; }
   body {
     font-family: 'JetBrains Mono', monospace;
     background: #f5f0e8;
@@ -35,6 +37,8 @@
     padding: 0;
   }
   .container {
+    position: relative;
+    z-index: 1;
     background: var(--surface);
     width: 100%;
     max-width: 100%;
@@ -69,7 +73,6 @@
     align-items: flex-end;
     gap: 5px;
     flex-shrink: 0;
-    width: fit-content;
   }
   .clock-time {
     font-family: 'IBM Plex Mono', monospace;
@@ -93,6 +96,33 @@
     border-radius: 99px;
     transition: width 0.95s linear;
   }
+
+  /* ── App Tabs ── */
+  .app-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 3px;
+    width: fit-content;
+  }
+  .app-tab {
+    padding: 5px 18px;
+    border-radius: 99px;
+    border: none;
+    background: transparent;
+    color: var(--text-3);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .app-tab.active { background: var(--text); color: #f7f5f1; }
+
+  /* ── Task input ── */
   .input-wrap {
     position: relative;
     margin-bottom: 0.7rem;
@@ -134,6 +164,8 @@
   }
   .add-btn:hover { transform: translateY(-50%) scale(1.06); opacity: 0.9; }
   .add-btn:active { transform: translateY(-50%) scale(0.93); }
+
+  /* ── Task toolbar ── */
   .toolbar {
     display: flex;
     align-items: center;
@@ -160,20 +192,8 @@
   .priority-btn.active-low  { background: var(--low);  color: #fff; }
   .priority-btn.active-mid  { background: var(--mid);  color: #fff; }
   .priority-btn.active-high { background: var(--high); color: #fff; }
-  .time-pill { display: none; }
-  .kbd-strip  { display: none; }
-  input[type="time"] {
-    border: 1.5px solid var(--border);
-    background: transparent;
-    border-radius: 8px;
-    padding: 4px 8px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-2);
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  input[type="time"]:focus { border-color: var(--accent); }
+
+  /* ── Task filters ── */
   .divider { height: 1px; background: var(--border); margin-bottom: 0.5rem; }
   .filters { display: flex; gap: 0; margin-bottom: 0.25rem; }
   .filter-btn {
@@ -191,6 +211,8 @@
   }
   .filter-btn:hover { color: var(--text-2); }
   .filter-btn.active { color: var(--text); font-weight: 700; border-bottom-color: var(--text); }
+
+  /* ── Task list ── */
   ul {
     list-style: none;
     max-height: calc(100vh - 420px);
@@ -243,7 +265,7 @@
     border-bottom: 2px solid #fff;
     transform: translate(-50%, -62%) rotate(45deg) scale(0);
     opacity: 0;
-    transition: opacity 0.18s cubic-bezier(0.4, 0, 0.2, 1), transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.18s cubic-bezier(0.4,0,0.2,1), transform 0.18s cubic-bezier(0.4,0,0.2,1);
   }
   .p-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
   .p-dot.high { background: var(--high); }
@@ -257,12 +279,6 @@
     line-height: 1.4;
     color: var(--text);
     transition: color 0.2s;
-  }
-  .task-time {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.66rem;
-    color: var(--text-3);
-    flex-shrink: 0;
   }
   .delete-btn {
     background: transparent;
@@ -292,6 +308,8 @@
     align-items: center;
     gap: 10px;
   }
+
+  /* ── Footer ── */
   .footer-row {
     display: flex;
     align-items: center;
@@ -330,6 +348,8 @@
   .ghost-btn.danger:hover { background: #ede8df; border-color: var(--high); color: var(--high); }
   #clear-btn { display: none; }
   #clear-btn.visible { display: block; }
+
+  /* ── Toast ── */
   .toast {
     position: fixed;
     bottom: 1.5rem;
@@ -345,7 +365,7 @@
     align-items: center;
     gap: 12px;
     box-shadow: 0 8px 28px rgba(0,0,0,0.18);
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
     z-index: 999;
     white-space: nowrap;
   }
@@ -362,6 +382,248 @@
     cursor: pointer;
   }
   .toast-undo:hover { background: rgba(255,255,255,0.1); }
+
+  /* ══════════════════════════════════════
+     NOTES — redesigned to match Tasks
+  ══════════════════════════════════════ */
+
+  /* Category tag pill (shown on cards) */
+  .cat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 99px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+  .cat-pill.work     { background: rgba(58,90,138,0.12); color: var(--cat-work); }
+  .cat-pill.personal { background: rgba(122,64,112,0.12); color: var(--cat-personal); }
+  .cat-pill.ideas    { background: rgba(90,106,42,0.12);  color: var(--cat-ideas); }
+
+  /* Category dot (same size as p-dot) */
+  .cat-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .cat-dot.work     { background: var(--cat-work); }
+  .cat-dot.personal { background: var(--cat-personal); }
+  .cat-dot.ideas    { background: var(--cat-ideas); }
+
+  /* Note rows — identical rhythm to task rows */
+  .note-row {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    animation: fadeUp 0.2s ease both;
+    transition: opacity 0.18s, background 0.15s;
+  }
+  .note-row:last-child { border-bottom: none; }
+  .note-row:hover { background: var(--surface-2); border-radius: var(--radius-sm); }
+  .note-row.archived { opacity: 0.42; }
+  .note-row.archived .note-row-title { text-decoration: line-through; color: var(--text-3); }
+
+  /* Archive circle — mirrors check-circle */
+  .archive-circle {
+    width: 19px;
+    height: 19px;
+    border-radius: 7px;
+    border: 1.5px solid var(--border);
+    flex-shrink: 0;
+    position: relative;
+    transition: background 0.2s, border-color 0.2s;
+    cursor: pointer;
+  }
+  .note-row.archived .archive-circle { background: var(--text-3); border-color: var(--text-3); }
+  .note-row.archived .archive-circle::after { opacity: 1; transform: translate(-50%,-62%) rotate(45deg) scale(1); }
+  .archive-circle::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 4px; height: 8px;
+    border-right: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: translate(-50%,-62%) rotate(45deg) scale(0);
+    opacity: 0;
+    transition: opacity 0.18s cubic-bezier(0.4,0,0.2,1), transform 0.18s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .note-row-title {
+    flex: 1;
+    font-size: 0.91rem;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .note-row-preview {
+    font-size: 0.74rem;
+    color: var(--text-3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 110px;
+    flex-shrink: 0;
+  }
+  .note-delete-btn {
+    background: transparent;
+    color: var(--text-3);
+    border: none;
+    width: 22px; height: 22px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s, color 0.15s;
+  }
+  .note-row:hover .note-delete-btn { opacity: 1; }
+  .note-delete-btn:hover { background: #ede8df; color: #8a3a3a; }
+
+  /* Notes toolbar — mirrors task filter bar */
+  .notes-filter-row {
+    display: flex;
+    gap: 0;
+    margin-bottom: 0.25rem;
+  }
+  .note-filter-btn {
+    flex: 1;
+    padding: 8px 0;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--text-3);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .note-filter-btn:hover { color: var(--text-2); }
+  .note-filter-btn.active { color: var(--text); font-weight: 700; border-bottom-color: var(--text); }
+
+  /* Notes scrollable list */
+  .notes-scroll {
+    max-height: calc(100vh - 420px);
+    min-height: 60px;
+    overflow-y: auto;
+    margin-top: 0.25rem;
+  }
+  .notes-scroll::-webkit-scrollbar { width: 0; }
+
+  /* ── Note editor — same visual language as list ── */
+  #note-editor-view { animation: fadeUp 0.18s ease both; }
+
+  .note-editor-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Category selector in editor — mirrors priority toolbar */
+  .cat-toolbar {
+    display: flex;
+    gap: 0;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 3px;
+    width: fit-content;
+    margin-bottom: 1rem;
+  }
+  .cat-btn {
+    padding: 5px 13px;
+    border-radius: 99px;
+    border: none;
+    background: transparent;
+    color: var(--text-3);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+  }
+  .cat-btn.active-work     { background: var(--cat-work);     color: #fff; }
+  .cat-btn.active-personal { background: var(--cat-personal); color: #fff; }
+  .cat-btn.active-ideas    { background: var(--cat-ideas);    color: #fff; }
+
+  #note-title-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    outline: none;
+    margin-bottom: 0.5rem;
+    padding: 0;
+    border-bottom: 1.5px solid var(--border);
+    padding-bottom: 8px;
+    transition: border-color 0.2s;
+  }
+  #note-title-input:focus { border-bottom-color: var(--accent); }
+  #note-title-input::placeholder { color: var(--text-3); }
+
+  #note-body-input {
+    width: 100%;
+    min-height: 200px;
+    border: none;
+    background: transparent;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem;
+    color: var(--text);
+    outline: none;
+    resize: none;
+    line-height: 1.7;
+    padding: 0;
+    margin-top: 0.75rem;
+  }
+  #note-body-input::placeholder { color: var(--text-3); }
+
+  /* Notes footer */
+  .notes-footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+  .notes-counter {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-3);
+  }
+
+  /* New note add bar — matches task input but as a button row */
+  .note-add-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 16px;
+    border-radius: var(--radius);
+    border: 1.5px dashed var(--border);
+    background: transparent;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem;
+    color: var(--text-3);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 0.7rem;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .note-add-row:hover { border-color: var(--accent); color: var(--text-2); }
+
   .footer-credit {
     position: fixed;
     bottom: 1.5rem;
@@ -370,111 +632,10 @@
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.7rem;
     color: var(--text-3);
-    letter-spacing: 0.02em;
     pointer-events: none;
     z-index: 1;
   }
-  .app-tabs {
-    display: flex;
-    gap: 0;
-    margin-bottom: 1rem;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 99px;
-    padding: 3px;
-    width: fit-content;
-  }
-  .app-tab {
-    padding: 5px 18px;
-    border-radius: 99px;
-    border: none;
-    background: transparent;
-    color: var(--text-3);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .app-tab.active { background: var(--text); color: #f7f5f1; }
-  .notes-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.5rem 0 0.75rem;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 0.5rem;
-  }
-  .notes-count {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-3);
-  }
-  .note-card {
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-    transition: background 0.15s;
-    animation: fadeUp 0.2s ease both;
-  }
-  .note-card:last-child { border-bottom: none; }
-  .note-card:hover { background: var(--surface-2); border-radius: var(--radius-sm); }
-  .note-card-title {
-    font-size: 0.91rem;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 3px;
-  }
-  .note-card-preview {
-    font-size: 0.76rem;
-    color: var(--text-3);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .note-card-date {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--text-3);
-    margin-top: 4px;
-  }
-  .note-editor-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0 0.75rem;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 0.75rem;
-  }
-  #note-title-input {
-    width: 100%;
-    border: none;
-    background: transparent;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text);
-    outline: none;
-    margin-bottom: 0.5rem;
-    padding: 0;
-  }
-  #note-title-input::placeholder { color: var(--text-3); }
-  #note-body-input {
-    width: 100%;
-    min-height: 220px;
-    border: none;
-    background: transparent;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.88rem;
-    color: var(--text);
-    outline: none;
-    resize: none;
-    line-height: 1.6;
-    padding: 0;
-  }
-  #note-body-input::placeholder { color: var(--text-3); }
 
-  /* ── Desktop: max-width centered layout ── */
   @media (min-width: 600px) {
     body { padding: 3rem 1rem 5rem; background: #ede8df; }
     .container {
@@ -485,6 +646,7 @@
       box-shadow: 0 4px 24px rgba(26,32,40,0.07);
     }
     ul { max-height: calc(100vh - 480px); }
+    .notes-scroll { max-height: calc(100vh - 480px); }
   }
 </style>
 </head>
@@ -496,11 +658,15 @@
   </filter>
 </svg>
 <div style="position:fixed;inset:0;filter:url(#noise);opacity:0.08;pointer-events:none;z-index:0;background:#fff;"></div>
+
 <div class="container">
-  <div class="app-tabs" style="margin-bottom: 1rem;">
-    <button class="app-tab active" onclick="sfx.tab(); switchApp('tasks')">Tasks</button>
-    <button class="app-tab"        onclick="sfx.tab(); switchApp('notes')">Notes</button>
+  <!-- App tabs -->
+  <div class="app-tabs">
+    <button class="app-tab active" onclick="switchApp('tasks')">Tasks</button>
+    <button class="app-tab"        onclick="switchApp('notes')">Notes</button>
   </div>
+
+  <!-- Header -->
   <div class="header">
     <div class="header-left">
       <h1>ফালুদা দৌৰ</h1>
@@ -513,79 +679,89 @@
       </div>
     </div>
   </div>
-  <div class="input-wrap">
-    <input type="text" id="task-input" placeholder="Add a task..." maxlength="80" autocomplete="off">
-    <button class="add-btn" onclick="sfx.add(); addTask()" title="Add (Enter)">+</button>
-  </div>
-  <div class="toolbar">
-    <button class="priority-btn active-low" data-p="low"  onclick="sfx.priorityLow();  selectPriority('low')">Low</button>
-    <button class="priority-btn"            data-p="mid"  onclick="sfx.priorityMid();  selectPriority('mid')">Mid</button>
-    <button class="priority-btn"            data-p="high" onclick="sfx.priorityHigh(); selectPriority('high')">High</button>
-    <div class="time-pill">
-      <label for="time-input">at</label>
-      <input type="time" id="time-input">
-    </div>
-  </div>
-  <div class="kbd-strip">
-    <kbd>Enter</kbd> add &nbsp;&#183;&nbsp; <kbd>Alt 1/2/3</kbd> priority
-  </div>
+
+  <!-- ══ TASKS VIEW ══ -->
   <div id="tasks-view">
+    <div class="input-wrap">
+      <input type="text" id="task-input" placeholder="Add a task..." maxlength="80" autocomplete="off">
+      <button class="add-btn" onclick="addTask()" title="Add (Enter)">+</button>
+    </div>
+    <div class="toolbar">
+      <button class="priority-btn active-low" data-p="low"  onclick="selectPriority('low')">Low</button>
+      <button class="priority-btn"            data-p="mid"  onclick="selectPriority('mid')">Mid</button>
+      <button class="priority-btn"            data-p="high" onclick="selectPriority('high')">High</button>
+    </div>
     <div class="divider"></div>
     <div class="filters">
-      <button class="filter-btn active" data-f="all"    onclick="sfx.filter(); setFilter('all')">All <span id="cnt-all"></span></button>
-      <button class="filter-btn"        data-f="active" onclick="sfx.filter(); setFilter('active')">Active <span id="cnt-active"></span></button>
-      <button class="filter-btn"        data-f="done"   onclick="sfx.filter(); setFilter('done')">Done <span id="cnt-done"></span></button>
+      <button class="filter-btn active" data-f="all"    onclick="setFilter('all')">All <span id="cnt-all"></span></button>
+      <button class="filter-btn"        data-f="active" onclick="setFilter('active')">Active <span id="cnt-active"></span></button>
+      <button class="filter-btn"        data-f="done"   onclick="setFilter('done')">Done <span id="cnt-done"></span></button>
     </div>
     <ul id="task-list"></ul>
-  </div>
-  <div id="notes-view" style="display:none;">
-    <div id="notes-list-view">
-      <div class="input-wrap" style="margin-bottom: 0.75rem;">
-        <button style="width:100%; padding: 13px 16px; border-radius: var(--radius); border: 1.5px solid var(--border); background: #fff; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; color: var(--text-3); text-align: left; cursor: pointer;" onclick="sfx.noteNew(); newNote()">+ New note...</button>
+    <div class="footer-row">
+      <span class="task-counter" id="task-counter"></span>
+      <div class="footer-actions">
+        <button class="ghost-btn danger" id="clear-btn" onclick="clearDone()">Clear done</button>
+        <button class="ghost-btn" id="sort-btn" onclick="toggleSort()">Sort</button>
       </div>
-      <div class="notes-toolbar">
-        <span class="notes-count" id="notes-count"></span>
-      </div>
-      <div id="notes-list"></div>
     </div>
+  </div>
+
+  <!-- ══ NOTES VIEW ══ -->
+  <div id="notes-view" style="display:none;">
+
+    <!-- Notes list -->
+    <div id="notes-list-view">
+      <button class="note-add-row" onclick="newNote()">+ New note...</button>
+      <div class="divider"></div>
+      <div class="notes-filter-row">
+        <button class="note-filter-btn active" data-nf="all"      onclick="setNoteFilter('all')">All <span id="ncnt-all"></span></button>
+        <button class="note-filter-btn"        data-nf="active"   onclick="setNoteFilter('active')">Active <span id="ncnt-active"></span></button>
+        <button class="note-filter-btn"        data-nf="archived" onclick="setNoteFilter('archived')">Archived <span id="ncnt-archived"></span></button>
+      </div>
+      <div class="notes-scroll" id="notes-list"></div>
+      <div class="notes-footer-row">
+        <span class="notes-counter" id="notes-counter"></span>
+        <div class="footer-actions">
+          <button class="ghost-btn danger" id="clear-archived-btn" onclick="clearArchived()" style="display:none;">Clear archived</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Note editor -->
     <div id="note-editor-view" style="display:none;">
-      <div class="note-editor-header">
-        <button class="ghost-btn" onclick="sfx.back(); closeEditor()">← Back</button>
-        <button class="ghost-btn danger" onclick="sfx.delete(); deleteCurrentNote()">Delete</button>
+      <div class="note-editor-topbar">
+        <button class="ghost-btn" onclick="closeEditor()">← Back</button>
+        <div style="display:flex;gap:6px;">
+          <button class="ghost-btn" id="archive-toggle-btn" onclick="toggleArchiveCurrent()">Archive</button>
+          <button class="ghost-btn danger" onclick="deleteCurrentNote()">Delete</button>
+        </div>
+      </div>
+      <!-- Category toolbar — mirrors priority toolbar -->
+      <div class="cat-toolbar">
+        <button class="cat-btn" data-cat="work"     onclick="selectCategory('work')">Work</button>
+        <button class="cat-btn" data-cat="personal" onclick="selectCategory('personal')">Personal</button>
+        <button class="cat-btn" data-cat="ideas"    onclick="selectCategory('ideas')">Ideas</button>
       </div>
       <input type="text" id="note-title-input" placeholder="Note title..." maxlength="60" autocomplete="off">
       <textarea id="note-body-input" placeholder="Start writing..."></textarea>
     </div>
-  </div>
-  <div class="footer-row">
-    <span class="task-counter" id="task-counter"></span>
-    <div class="footer-actions">
-      <button class="ghost-btn danger" id="clear-btn" onclick="sfx.sweep(); clearDone()">Clear done</button>
-      <button class="ghost-btn" id="sort-btn" onclick="sfx.filter(); toggleSort()">Sort</button>
-    </div>
+
   </div>
 </div>
+
 <div class="toast" id="toast">
   Task removed
   <button class="toast-undo" onclick="undoDelete()">Undo</button>
 </div>
 
+<div class="footer-credit">© 2026 Surajit Laskar</div>
+<div id="stats-bar" style="text-align:center;font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:#a09890;position:fixed;bottom:0.25rem;width:100%;pointer-events:none;z-index:1;"></div>
+
 <script>
-var sfx = {
-  tab: function() {},
-  add: function() {},
-  complete: function() {},
-  filter: function() {},
-  delete: function() {},
-  undo: function() {},
-  sweep: function() {},
-  back: function() {},
-  noteNew: function() {},
-  noteOpen: function() {},
-  priorityLow: function() {},
-  priorityMid: function() {},
-  priorityHigh: function() {}
-};
+// ══════════════════════════════════════
+// TASKS
+// ══════════════════════════════════════
 var tasks            = JSON.parse(localStorage.getItem('myDay_tasks') || '[]');
 var selectedPriority = 'low';
 var activeFilter     = 'all';
@@ -621,13 +797,11 @@ function toggleSort() {
 }
 
 function addTask() {
-  var input     = document.getElementById('task-input');
-  var timeInput = document.getElementById('time-input');
-  var text      = input.value.trim();
+  var input = document.getElementById('task-input');
+  var text  = input.value.trim();
   if (!text) return;
-  tasks.push({ text: text, priority: selectedPriority, done: false, id: Date.now(), time: timeInput.value || null });
+  tasks.push({ text: text, priority: selectedPriority, done: false, id: Date.now() });
   input.value = '';
-  timeInput.value = '';
   input.focus();
   save(); render();
 }
@@ -636,15 +810,9 @@ function toggleTask(id) {
   var li = document.querySelector('li[data-id="' + id + '"]');
   if (!li) return;
   var t = tasks.find(function(t) { return t.id === id; });
-  var wasUndone = t && !t.done;
-  if (wasUndone) sfx.complete(); else sfx.filter();
   li.classList.add('completing');
   setTimeout(function() {
-    if (t) {
-      t.done = !t.done;
-      if (t.done) trackCompletion();
-      save(); render();
-    }
+    if (t) { t.done = !t.done; if (t.done) trackCompletion(); save(); render(); }
   }, 200);
 }
 
@@ -657,8 +825,7 @@ function editTask(id, el) {
   var range = document.createRange();
   range.selectNodeContents(el);
   var sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(range);
+  sel.removeAllRanges(); sel.addRange(range);
   el.style.outline = 'none';
   el.style.borderBottom = '1.5px solid var(--accent)';
   el.style.paddingBottom = '1px';
@@ -668,8 +835,7 @@ function editTask(id, el) {
     el.style.paddingBottom = '';
     var newText = el.textContent.trim();
     if (cancel || !newText) { el.textContent = prev; return; }
-    t.text = newText;
-    save();
+    t.text = newText; save();
   }
   el.onblur = function() { finish(false); };
   el.onkeydown = function(e) {
@@ -680,11 +846,9 @@ function editTask(id, el) {
 
 function deleteTask(id, e) {
   e.stopPropagation();
-  sfx.delete();
   var idx = tasks.findIndex(function(t) { return t.id === id; });
   if (idx === -1) return;
-  deletedTask  = tasks[idx];
-  deletedIndex = idx;
+  deletedTask = tasks[idx]; deletedIndex = idx;
   tasks.splice(idx, 1);
   save(); render(); showToast();
 }
@@ -710,14 +874,13 @@ function getStats() {
   var stats = JSON.parse(localStorage.getItem('myDay_stats') || '{}');
   var today = new Date().toISOString().slice(0, 10);
   var todayCount = stats[today] || 0;
-  var total = Object.values(stats).reduce(function(a, b) { return a + b; }, 0);
+  var total = Object.values(stats).reduce(function(a,b){ return a+b; }, 0);
   var days = Object.keys(stats).length;
   return { today: todayCount, total: total, days: days };
 }
 
 function undoDelete() {
   if (!deletedTask) return;
-  sfx.undo();
   tasks.splice(deletedIndex, 0, deletedTask);
   deletedTask = null;
   save(); render(); hideToast();
@@ -733,21 +896,20 @@ function clearDone() { tasks = tasks.filter(function(t) { return !t.done; }); sa
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function render() {
-  var list  = document.getElementById('task-list');
+  var list = document.getElementById('task-list');
   list.innerHTML = '';
   var total  = tasks.length;
-  var active = tasks.filter(function(t) { return !t.done; }).length;
-  var done   = tasks.filter(function(t) { return t.done; }).length;
-  document.getElementById('cnt-all').textContent    = total  ? '(' + total  + ')' : '';
-  document.getElementById('cnt-active').textContent = active ? '(' + active + ')' : '';
-  document.getElementById('cnt-done').textContent   = done   ? '(' + done   + ')' : '';
-  document.getElementById('task-counter').textContent =
-    total === 0 ? '' : (active + ' of ' + total + ' remaining');
+  var active = tasks.filter(function(t){ return !t.done; }).length;
+  var done   = tasks.filter(function(t){ return t.done; }).length;
+  document.getElementById('cnt-all').textContent    = total  ? '('+total+')'  : '';
+  document.getElementById('cnt-active').textContent = active ? '('+active+')' : '';
+  document.getElementById('cnt-done').textContent   = done   ? '('+done+')'   : '';
+  document.getElementById('task-counter').textContent = total === 0 ? '' : (active + ' of ' + total + ' remaining');
   document.getElementById('clear-btn').classList.toggle('visible', done > 0);
   var visible = tasks.slice();
-  if (activeFilter === 'active') visible = visible.filter(function(t) { return !t.done; });
-  if (activeFilter === 'done')   visible = visible.filter(function(t) { return t.done; });
-  if (sortByPriority) visible.sort(function(a,b) { return priorityOrder[a.priority] - priorityOrder[b.priority]; });
+  if (activeFilter === 'active') visible = visible.filter(function(t){ return !t.done; });
+  if (activeFilter === 'done')   visible = visible.filter(function(t){ return t.done; });
+  if (sortByPriority) visible.sort(function(a,b){ return priorityOrder[a.priority]-priorityOrder[b.priority]; });
   if (visible.length === 0) {
     var icons = {
       all:    '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M9 12l2 2 4-4"/></svg>',
@@ -755,27 +917,25 @@ function render() {
       done:   '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2 2"/></svg>'
     };
     var msgs = { all: 'No tasks yet.', active: 'All caught up.', done: 'Nothing completed yet.' };
-    list.innerHTML = '<div class="empty-state">' + icons[activeFilter] + '<div>' + msgs[activeFilter] + '</div></div>';
+    list.innerHTML = '<div class="empty-state">'+icons[activeFilter]+'<div>'+msgs[activeFilter]+'</div></div>';
     return;
   }
   visible.forEach(function(task) {
-    var li      = document.createElement('li');
+    var li = document.createElement('li');
     li.dataset.id = task.id;
     li.dataset.p  = task.priority;
     if (task.done) li.classList.add('done');
     li.draggable = true;
     li.onclick = function() { toggleTask(task.id); };
     li.ondragstart = function() { li.classList.add('dragging'); dragSrcId = task.id; };
-    li.ondragend = function() { li.classList.remove('dragging'); document.querySelectorAll('li.drag-over').forEach(function(el) { el.classList.remove('drag-over'); }); };
-    li.ondragover = function(e) { e.preventDefault(); document.querySelectorAll('li.drag-over').forEach(function(el) { el.classList.remove('drag-over'); }); li.classList.add('drag-over'); };
-    li.ondrop = function(e) { e.preventDefault(); reorderTask(dragSrcId, task.id); };
-    var timeHtml = task.time ? '<span class="task-time">' + task.time + '</span>' : '';
+    li.ondragend   = function() { li.classList.remove('dragging'); document.querySelectorAll('li.drag-over').forEach(function(el){ el.classList.remove('drag-over'); }); };
+    li.ondragover  = function(e) { e.preventDefault(); document.querySelectorAll('li.drag-over').forEach(function(el){ el.classList.remove('drag-over'); }); li.classList.add('drag-over'); };
+    li.ondrop      = function(e) { e.preventDefault(); reorderTask(dragSrcId, task.id); };
     li.innerHTML =
       '<div class="check-circle"></div>' +
-      '<div class="p-dot ' + task.priority + '"></div>' +
-      '<span class="task-text" ondblclick="editTask(' + task.id + ',this)">' + esc(task.text) + '</span>' +
-      timeHtml +
-      '<button class="delete-btn" onclick="deleteTask(' + task.id + ',event)" title="Delete">&#x2715;</button>';
+      '<div class="p-dot '+task.priority+'"></div>' +
+      '<span class="task-text" ondblclick="editTask('+task.id+',this)">'+esc(task.text)+'</span>' +
+      '<button class="delete-btn" onclick="deleteTask('+task.id+',event)" title="Delete">&#x2715;</button>';
     list.appendChild(li);
   });
   updateStats();
@@ -786,137 +946,226 @@ function updateStats() {
   var el = document.getElementById('stats-bar');
   if (!el) return;
   if (s.total === 0) { el.textContent = ''; return; }
-  el.textContent = s.today + ' done today · ' + s.total + ' total across ' + s.days + ' day' + (s.days === 1 ? '' : 's');
+  el.textContent = s.today + ' done today · ' + s.total + ' total across ' + s.days + ' day' + (s.days===1?'':'s');
 }
 
-function setDate() {
-  var d = new Date();
-  document.getElementById('date-display').textContent =
-    d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-}
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && document.activeElement.id === 'task-input') { sfx.add(); addTask(); }
-  if (e.altKey && e.key === '1') { e.preventDefault(); sfx.priorityLow();  selectPriority('low');  }
-  if (e.altKey && e.key === '2') { e.preventDefault(); sfx.priorityMid();  selectPriority('mid');  }
-  if (e.altKey && e.key === '3') { e.preventDefault(); sfx.priorityHigh(); selectPriority('high'); }
-});
-
-setDate();
-render();
-
-function updateClock() {
-  var now  = new Date();
-  var hrs  = now.getHours();
-  var h    = String(hrs % 12 || 12).padStart(2, '0');
-  var m    = String(now.getMinutes()).padStart(2, '0');
-  var secs = now.getSeconds();
-  var s    = String(secs).padStart(2, '0');
-  var ampm = hrs >= 12 ? 'PM' : 'AM';
-  document.getElementById('clock-time').textContent = h + ':' + m + ':' + s + ' ' + ampm;
-  document.getElementById('seconds-bar').style.width = ((secs / 60) * 100) + '%';
-}
-updateClock();
-setInterval(updateClock, 1000);
-
-var notes = JSON.parse(localStorage.getItem('myDay_notes') || '[]');
+// ══════════════════════════════════════
+// NOTES
+// ══════════════════════════════════════
+var notes         = JSON.parse(localStorage.getItem('myDay_notes') || '[]');
 var currentNoteId = null;
-var activeApp = 'tasks';
+var noteFilter    = 'all';
+var editorDirty   = false;
+
+// Migrate old notes that lack category/archived fields
+notes = notes.map(function(n) {
+  if (!n.category) n.category = 'personal';
+  if (n.archived === undefined) n.archived = false;
+  return n;
+});
 
 function saveNotes() { localStorage.setItem('myDay_notes', JSON.stringify(notes)); }
 
-function switchApp(app) {
-  activeApp = app;
-  document.querySelectorAll('.app-tab').forEach(function(btn) {
-    btn.classList.toggle('active', btn.getAttribute('onclick').includes("'" + app + "'"));
+function setNoteFilter(f) {
+  noteFilter = f;
+  document.querySelectorAll('.note-filter-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.nf === f);
   });
-  document.getElementById('tasks-view').style.display = app === 'tasks' ? '' : 'none';
-  document.getElementById('notes-view').style.display = app === 'notes' ? '' : 'none';
-  document.querySelector('.footer-row').style.display = app === 'tasks' ? '' : 'none';
-  document.querySelector('.toolbar').style.display = app === 'tasks' ? '' : 'none';
-  document.querySelector('.input-wrap').style.display = app === 'tasks' ? '' : 'none';
-  if (app === 'notes') renderNotes();
+  renderNotes();
+}
+
+function selectCategory(cat) {
+  var note = notes.find(function(n){ return n.id === currentNoteId; });
+  if (note) { note.category = cat; saveNotes(); }
+  document.querySelectorAll('.cat-btn').forEach(function(btn) {
+    btn.className = 'cat-btn';
+    if (btn.dataset.cat === cat) btn.classList.add('active-' + cat);
+  });
 }
 
 function newNote() {
-  var note = { id: Date.now(), title: '', body: '', updated: Date.now() };
+  var note = { id: Date.now(), title: '', body: '', category: 'personal', archived: false, updated: Date.now() };
   notes.unshift(note);
   saveNotes();
   openNote(note.id);
 }
 
 function openNote(id) {
-  sfx.filter();
   currentNoteId = id;
-  var note = notes.find(function(n) { return n.id === id; });
+  var note = notes.find(function(n){ return n.id === id; });
   if (!note) return;
   document.getElementById('note-title-input').value = note.title;
-  document.getElementById('note-body-input').value = note.body;
-  document.getElementById('notes-list-view').style.display = 'none';
+  document.getElementById('note-body-input').value  = note.body;
+  // Set category toolbar
+  document.querySelectorAll('.cat-btn').forEach(function(btn) {
+    btn.className = 'cat-btn';
+    if (btn.dataset.cat === note.category) btn.classList.add('active-' + note.category);
+  });
+  // Set archive toggle label
+  document.getElementById('archive-toggle-btn').textContent = note.archived ? 'Unarchive' : 'Archive';
+  document.getElementById('notes-list-view').style.display  = 'none';
   document.getElementById('note-editor-view').style.display = '';
   document.getElementById('note-title-input').focus();
 }
 
 function closeEditor() {
-  var note = notes.find(function(n) { return n.id === currentNoteId; });
+  var note = notes.find(function(n){ return n.id === currentNoteId; });
   if (note) {
-    note.title = document.getElementById('note-title-input').value.trim();
-    note.body  = document.getElementById('note-body-input').value.trim();
+    note.title   = document.getElementById('note-title-input').value.trim();
+    note.body    = document.getElementById('note-body-input').value.trim();
     note.updated = Date.now();
     if (!note.title && !note.body) {
-      notes = notes.filter(function(n) { return n.id !== currentNoteId; });
+      notes = notes.filter(function(n){ return n.id !== currentNoteId; });
     }
     saveNotes();
   }
   currentNoteId = null;
-  document.getElementById('note-editor-view').style.display = 'none';
-  document.getElementById('notes-list-view').style.display = '';
+  document.getElementById('note-editor-view').style.display  = 'none';
+  document.getElementById('notes-list-view').style.display   = '';
   renderNotes();
 }
 
+function toggleArchiveCurrent() {
+  var note = notes.find(function(n){ return n.id === currentNoteId; });
+  if (!note) return;
+  // Save current edits first
+  note.title   = document.getElementById('note-title-input').value.trim();
+  note.body    = document.getElementById('note-body-input').value.trim();
+  note.updated = Date.now();
+  note.archived = !note.archived;
+  saveNotes();
+  document.getElementById('archive-toggle-btn').textContent = note.archived ? 'Unarchive' : 'Archive';
+}
+
 function deleteCurrentNote() {
-  notes = notes.filter(function(n) { return n.id !== currentNoteId; });
+  notes = notes.filter(function(n){ return n.id !== currentNoteId; });
   saveNotes();
   currentNoteId = null;
-  document.getElementById('note-editor-view').style.display = 'none';
-  document.getElementById('notes-list-view').style.display = '';
+  document.getElementById('note-editor-view').style.display  = 'none';
+  document.getElementById('notes-list-view').style.display   = '';
+  renderNotes();
+}
+
+function clearArchived() {
+  notes = notes.filter(function(n){ return !n.archived; });
+  saveNotes();
   renderNotes();
 }
 
 function renderNotes() {
   var list = document.getElementById('notes-list');
-  var count = document.getElementById('notes-count');
-  count.textContent = notes.length ? notes.length + ' note' + (notes.length === 1 ? '' : 's') : '';
-  if (notes.length === 0) {
-    list.innerHTML = '<div class="empty-state"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><div>No notes yet.</div></div>';
+  list.innerHTML = '';
+  var total    = notes.length;
+  var active   = notes.filter(function(n){ return !n.archived; }).length;
+  var archived = notes.filter(function(n){ return n.archived; }).length;
+  document.getElementById('ncnt-all').textContent      = total    ? '('+total+')'    : '';
+  document.getElementById('ncnt-active').textContent   = active   ? '('+active+')'   : '';
+  document.getElementById('ncnt-archived').textContent = archived ? '('+archived+')' : '';
+  document.getElementById('notes-counter').textContent = total === 0 ? '' : (active + ' active · ' + archived + ' archived');
+  var clearBtn = document.getElementById('clear-archived-btn');
+  clearBtn.style.display = archived > 0 ? '' : 'none';
+
+  var visible = notes.slice();
+  if (noteFilter === 'active')   visible = visible.filter(function(n){ return !n.archived; });
+  if (noteFilter === 'archived') visible = visible.filter(function(n){ return n.archived; });
+
+  if (visible.length === 0) {
+    var msgs = { all: 'No notes yet.', active: 'All notes archived.', archived: 'Nothing archived.' };
+    list.innerHTML = '<div class="empty-state"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><div>'+msgs[noteFilter]+'</div></div>';
     return;
   }
-  list.innerHTML = '';
-  notes.forEach(function(note) {
-    var card = document.createElement('div');
-    card.className = 'note-card';
-    card.onclick = function() { openNote(note.id); };
-    var d = new Date(note.updated);
-    var dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    card.innerHTML =
-      '<div class="note-card-title">' + esc(note.title || 'Untitled') + '</div>' +
-      '<div class="note-card-preview">' + esc(note.body || 'No content') + '</div>' +
-      '<div class="note-card-date">' + dateStr + '</div>';
-    list.appendChild(card);
+
+  visible.forEach(function(note) {
+    var row = document.createElement('div');
+    row.className = 'note-row' + (note.archived ? ' archived' : '');
+
+    var catColors = { work: 'var(--cat-work)', personal: 'var(--cat-personal)', ideas: 'var(--cat-ideas)' };
+    var catLabels = { work: 'Work', personal: 'Personal', ideas: 'Ideas' };
+
+    row.innerHTML =
+      '<div class="archive-circle" onclick="toggleArchiveRow('+note.id+',event)" title="'+(note.archived?'Unarchive':'Archive')+'"></div>' +
+      '<div class="cat-dot '+note.category+'"></div>' +
+      '<span class="note-row-title">'+esc(note.title || 'Untitled')+'</span>' +
+      '<span class="note-row-preview">'+esc(note.body || '')+'</span>' +
+      '<button class="note-delete-btn" onclick="deleteNoteRow('+note.id+',event)" title="Delete">&#x2715;</button>';
+
+    row.onclick = function(e) {
+      if (e.target.classList.contains('archive-circle') || e.target.classList.contains('note-delete-btn')) return;
+      openNote(note.id);
+    };
+    list.appendChild(row);
   });
 }
+
+function toggleArchiveRow(id, e) {
+  e.stopPropagation();
+  var note = notes.find(function(n){ return n.id === id; });
+  if (!note) return;
+  note.archived = !note.archived;
+  note.updated  = Date.now();
+  saveNotes();
+  renderNotes();
+}
+
+function deleteNoteRow(id, e) {
+  e.stopPropagation();
+  notes = notes.filter(function(n){ return n.id !== id; });
+  saveNotes();
+  renderNotes();
+}
+
+// ══════════════════════════════════════
+// APP SWITCHER
+// ══════════════════════════════════════
+var activeApp = 'tasks';
+
+function switchApp(app) {
+  activeApp = app;
+  document.querySelectorAll('.app-tab').forEach(function(btn) {
+    btn.classList.toggle('active', btn.textContent.toLowerCase().trim() === app);
+  });
+  document.getElementById('tasks-view').style.display = app === 'tasks' ? '' : 'none';
+  document.getElementById('notes-view').style.display = app === 'notes' ? '' : 'none';
+  if (app === 'notes') renderNotes();
+}
+
+// ══════════════════════════════════════
+// CLOCK & DATE
+// ══════════════════════════════════════
+function setDate() {
+  document.getElementById('date-display').textContent =
+    new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+}
+
+function updateClock() {
+  var now  = new Date();
+  var hrs  = now.getHours();
+  var h    = String(hrs % 12 || 12).padStart(2, '0');
+  var m    = String(now.getMinutes()).padStart(2, '0');
+  var s    = String(now.getSeconds()).padStart(2, '0');
+  var ampm = hrs >= 12 ? 'PM' : 'AM';
+  document.getElementById('clock-time').textContent = h+':'+m+':'+s+' '+ampm;
+  document.getElementById('seconds-bar').style.width = ((now.getSeconds()/60)*100)+'%';
+}
+
+// ══════════════════════════════════════
+// KEYBOARD
+// ══════════════════════════════════════
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.activeElement.id === 'task-input') addTask();
+  if (e.altKey && e.key === '1') { e.preventDefault(); selectPriority('low');  }
+  if (e.altKey && e.key === '2') { e.preventDefault(); selectPriority('mid');  }
+  if (e.altKey && e.key === '3') { e.preventDefault(); selectPriority('high'); }
+  if (e.key === 'Escape' && currentNoteId !== null) closeEditor();
+});
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+setDate();
+render();
+updateClock();
+setInterval(updateClock, 1000);
 </script>
-<div class="footer-credit">© 2026 <a href="https://instagram.com/yourusername" target="_blank" style="color:inherit;text-decoration:none;">Surajit Laskar</a></div>
-<div id="stats-bar" style="
-  text-align:center;
-  font-family:'IBM Plex Mono',monospace;
-  font-size:0.68rem;
-  color:#a09890;
-  position:fixed;
-  bottom:0.25rem;
-  width:100%;
-  pointer-events:none;
-  z-index:1;
-"></div>
 </body>
 </html>
