@@ -46,7 +46,7 @@
     padding: 2.25rem 1.75rem 1.5rem;
   }
   .header {
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -93,6 +93,32 @@
     border-radius: 99px;
     transition: width 0.95s linear;
   }
+
+  /* ── Looping wave banner ── */
+  .loop-banner {
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--radius);
+    margin-bottom: 1.25rem;
+    line-height: 0;
+  }
+  .loop-banner svg { display: block; width: 100%; height: auto; }
+  .loop-ribbon {
+    fill: none;
+    stroke: var(--text);
+    stroke-width: 96;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .loop-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 56px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    fill: var(--surface);
+    user-select: none;
+  }
+  .loop-measure { visibility: hidden; pointer-events: none; }
 
   /* ── App Tabs ── */
   .app-tabs {
@@ -212,7 +238,7 @@
   /* ── Task list ── */
   ul {
     list-style: none;
-    max-height: calc(100vh - 420px);
+    max-height: calc(100vh - 500px);
     min-height: 60px;
     overflow-y: auto;
     margin-top: 0.25rem;
@@ -384,7 +410,6 @@
      NOTES — redesigned to match Tasks
   ══════════════════════════════════════ */
 
-  /* Note rows — identical rhythm to task rows */
   .note-row {
     display: flex;
     align-items: center;
@@ -433,7 +458,6 @@
   .note-row:hover .note-delete-btn { opacity: 1; }
   .note-delete-btn:hover { background: #ede8df; color: #8a3a3a; }
 
-  /* Notes toolbar — mirrors task filter bar */
   .notes-filter-row {
     display: flex;
     gap: 0;
@@ -455,16 +479,14 @@
   .note-filter-btn:hover { color: var(--text-2); }
   .note-filter-btn.active { color: var(--text); font-weight: 700; border-bottom-color: var(--text); }
 
-  /* Notes scrollable list */
   .notes-scroll {
-    max-height: calc(100vh - 420px);
+    max-height: calc(100vh - 500px);
     min-height: 60px;
     overflow-y: auto;
     margin-top: 0.25rem;
   }
   .notes-scroll::-webkit-scrollbar { width: 0; }
 
-  /* ── Note editor — same visual language as list ── */
   #note-editor-view { animation: fadeUp 0.18s ease both; }
 
   .note-editor-topbar {
@@ -512,7 +534,6 @@
   #note-editor-view.color-rose   { background: #fdf0ee; }
   #note-body-input::placeholder { color: var(--text-3); }
 
-  /* Notes footer */
   .notes-footer-row {
     display: flex;
     align-items: center;
@@ -527,7 +548,6 @@
     color: var(--text-3);
   }
 
-  /* New note add bar — matches task input but as a button row */
   .note-add-row {
     display: flex;
     align-items: center;
@@ -568,8 +588,8 @@
       border: 1px solid var(--border);
       box-shadow: 0 4px 24px rgba(26,32,40,0.07);
     }
-    ul { max-height: calc(100vh - 480px); }
-    .notes-scroll { max-height: calc(100vh - 480px); }
+    ul { max-height: calc(100vh - 560px); }
+    .notes-scroll { max-height: calc(100vh - 560px); }
   }
 </style>
 </head>
@@ -601,6 +621,21 @@
         <div class="seconds-bar-fill" id="seconds-bar"></div>
       </div>
     </div>
+  </div>
+
+  <!-- Looping wave banner -->
+  <div class="loop-banner" id="loop-banner" aria-hidden="true">
+    <svg viewBox="0 0 1200 240" preserveAspectRatio="xMidYMid meet">
+      <path id="loop-path" class="loop-ribbon"
+            d="M -320 120 Q -160 50 0 120 T 320 120 T 640 120 T 960 120 T 1280 120 T 1520 120"/>
+      <text id="loop-measure" class="loop-text loop-measure"></text>
+      <text id="loop-text-a" class="loop-text" dominant-baseline="central">
+        <textPath id="loop-head" href="#loop-path" startOffset="0"></textPath>
+      </text>
+      <text id="loop-text-b" class="loop-text" dominant-baseline="central">
+        <textPath id="loop-tail" href="#loop-path" startOffset="0"></textPath>
+      </text>
+    </svg>
   </div>
 
   <!-- ══ TASKS VIEW ══ -->
@@ -660,7 +695,6 @@
           <button class="ghost-btn danger" onclick="deleteCurrentNote()">Delete</button>
         </div>
       </div>
-      <!-- Category toolbar — mirrors priority toolbar -->
       <input type="text" id="note-title-input" placeholder="Note title..." maxlength="60" autocomplete="off">
       <textarea id="note-body-input" placeholder="Start writing..."></textarea>
     </div>
@@ -874,7 +908,6 @@ var notes         = JSON.parse(localStorage.getItem('myDay_notes') || '[]');
 var currentNoteId = null;
 var noteFilter    = 'all';
 
-// Migrate old notes that lack category/archived fields
 notes = notes.map(function(n) {
   if (!n.category) n.category = 'personal';
   if (n.archived === undefined) n.archived = false;
@@ -903,7 +936,6 @@ function openNote(id) {
   if (!note) return;
   document.getElementById('note-title-input').value = note.title;
   document.getElementById('note-body-input').value  = note.body;
-  // Set archive toggle label
   document.getElementById('archive-toggle-btn').textContent = note.archived ? 'Unarchive' : 'Archive';
   document.getElementById('notes-list-view').style.display  = 'none';
   document.getElementById('note-editor-view').style.display = '';
@@ -930,7 +962,6 @@ function closeEditor() {
 function toggleArchiveCurrent() {
   var note = notes.find(function(n){ return n.id === currentNoteId; });
   if (!note) return;
-  // Save current edits first
   note.title   = document.getElementById('note-title-input').value.trim();
   note.body    = document.getElementById('note-body-input').value.trim();
   note.updated = Date.now();
@@ -1033,6 +1064,88 @@ function updateClock() {
   document.getElementById('clock-time').textContent = h+':'+m+':'+s+' '+ampm;
   document.getElementById('seconds-bar').style.width = ((now.getSeconds()/60)*100)+'%';
 }
+
+// ══════════════════════════════════════
+// LOOPING WAVE BANNER
+// ══════════════════════════════════════
+// Settings — change these to restyle the banner
+var LOOP_TEXT      = 'My Day';
+var LOOP_SEPARATOR = '✦';
+var LOOP_SPEED     = 90;     // higher = faster
+var LOOP_REVERSE   = false;  // true = scroll the other way
+var LOOP_PAUSE     = true;   // slow to a stop when the mouse is over it
+
+(function() {
+  var banner  = document.getElementById('loop-banner');
+  var pathEl  = document.getElementById('loop-path');
+  var measure = document.getElementById('loop-measure');
+  var textA   = document.getElementById('loop-text-a');
+  var textB   = document.getElementById('loop-text-b');
+  var head    = document.getElementById('loop-head');
+  var tail    = document.getElementById('loop-tail');
+  if (!banner || !pathEl) return;
+
+  var unit = LOOP_TEXT.toUpperCase() + '\u00A0' + LOOP_SEPARATOR + '\u00A0';
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var base    = reduced ? 0 : LOOP_SPEED * (LOOP_REVERSE ? -1 : 1);
+  var length  = 0;
+  var travel  = 0;
+  var hover = 1, hoverTarget = 1;
+  var visible = true;
+  var last = performance.now();
+
+  measure.textContent = unit;
+
+  function measureAll() {
+    var total = 0, unitWidth = 0;
+    try {
+      total = pathEl.getTotalLength();
+      unitWidth = measure.getComputedTextLength();
+    } catch (e) { return; }
+    if (!total) return;
+    var reps = unitWidth > 0 ? Math.max(1, Math.round(total / unitWidth)) : 1;
+    var content = new Array(reps + 1).join(unit);
+    head.textContent = content;
+    tail.textContent = content;
+    textA.setAttribute('textLength', total);
+    textB.setAttribute('textLength', total);
+    textA.setAttribute('lengthAdjust', 'spacing');
+    textB.setAttribute('lengthAdjust', 'spacing');
+    length = total;
+  }
+
+  measureAll();
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(measureAll);
+  }
+
+  if (LOOP_PAUSE) {
+    banner.addEventListener('pointerenter', function(e) {
+      if (e.pointerType !== 'touch') hoverTarget = 0;
+    });
+    banner.addEventListener('pointerleave', function() { hoverTarget = 1; });
+  }
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function(entries) {
+      visible = entries[0].isIntersecting;
+    }).observe(banner);
+  }
+
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    hover += (hoverTarget - hover) * (1 - Math.exp(-dt / (hoverTarget === 0 ? 0.2 : 0.3)));
+    if (length && visible && base !== 0) {
+      travel += base * hover * dt;
+      var offset = ((travel % length) + length) % length;
+      head.setAttribute('startOffset', offset);
+      tail.setAttribute('startOffset', offset - length);
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
 
 // ══════════════════════════════════════
 // KEYBOARD
